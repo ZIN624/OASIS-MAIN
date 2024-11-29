@@ -84,6 +84,68 @@
   height: 60px; /* ボタンの高さを少し小さく */
   font-size: 1.5em; /* フォントサイズを少し小さく */
 }
+/* スタイリストカードコンテナを横並びに */
+#stylist-container {
+  display: flex;
+  gap: 20px; /* カード間のスペース */
+  justify-content: center; /* 横中央揃え */
+  flex-wrap: wrap; /* 画面幅が狭い場合に折り返し可能に */
+  margin: 20px 0;
+}
+
+/* 個々のカードのスタイル */
+.stylist-card {
+  width: 200px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  background-color: #fff;
+}
+
+.stylist-card:hover {
+  transform: translateY(-10px); /* ホバーで浮き上がるエフェクト */
+}
+
+/* スタイリスト画像のスタイル */
+.stylist-image img {
+  width: 100%;
+  height: auto;
+  border-bottom: 1px solid #ddd;
+}
+
+/* スタイリスト情報 */
+.stylist-info {
+  padding: 10px;
+}
+
+.stylist-info h3 {
+  margin: 10px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.stylist-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+/* 選択時のカードのスタイル */
+.stylist-card.selected {
+  border: 2px solid #4CAF50; /* 緑の枠線 */
+  box-shadow: 0 8px 10px rgba(0, 0, 0, 0.15);
+  background-color: #f9fff9; /* 少し緑がかった背景色 */
+}
+
+/* 通常カードのスタイル */
+.stylist-card {
+  cursor: pointer; /* カーソルをクリック可能に */
+  transition: all 0.3s ease;
+}
+
+
   </style>
   
 </head>
@@ -165,17 +227,43 @@
 
 
    
-
-    <!-- スタッフ -->
-    <h2 class="title">担当スタイリスト:</h2>
-    <div class="input-wrapper">
-      <label for="staff" class="input-label">スタイリスト:</label>
-      <select id="staff" name="staff" class="input-select" required>
-        <option value="指名なし">指定なし</option>
-        <option value="岡崎富之【オーナー】">岡崎富之【オーナー】</option>
-        <option value="岡崎寿美子【店長】">岡崎寿美子【店長】</option>
-      </select>
+<!--スタッフ-->
+<h2 class="title">担当スタイリスト:</h2>
+<div id="stylist-container">
+  <!-- 必ずフォームの中か適切な場所にこの要素を追加 -->
+<input type="hidden" id="selectedStylistInput" name="stylist">
+<div class="stylist-card" data-stylist="指名なし">
+  <div class="stylist-image">
+    <img src="" alt="指名なし">
+  </div>
+  <div class="stylist-info">
+    <h3>指名なし</h3>
+  
+  </div>
+</div>
+<div class="stylist-card" data-stylist="岡崎富之">
+    <div class="stylist-image">
+      <img src="" alt="岡崎富之">
     </div>
+    <div class="stylist-info">
+      <h3>岡崎富之</h3>
+      <p>オーナー</p>
+    </div>
+  </div>
+  <div class="stylist-card" data-stylist="岡崎寿美子">
+    <div class="stylist-image">
+      <img src="" alt="岡崎寿美子">
+    </div>
+    <div class="stylist-info">
+      <h3>岡崎寿美子</h3>
+      <p>店長</p>
+    </div>
+  </div>
+</div>
+
+
+
+
 
     <!-- 電話番号 -->
     <h2 class="title">電話番号:</h2>
@@ -392,7 +480,37 @@ function updateDays(monthId, dayId) {
 }
 
 
-   
+const selectButtons = document.querySelectorAll('.select-btn');
+
+
+//スタイリスト
+selectButtons.forEach(button => {
+  button.addEventListener('click', function() {
+    const stylistName = this.closest('.stylist-card').querySelector('h3').textContent;
+    alert(`${stylistName} を選びました！`);
+    // ここでフォームの入力フィールドに名前をセットする処理を追加できます
+  });
+});
+// スタイリストカードを取得
+const cards = document.querySelectorAll('.stylist-card');
+
+cards.forEach(card => {
+  card.addEventListener('click', () => {
+    // すべてのカードの選択を解除
+    cards.forEach(c => c.classList.remove('selected'));
+    // クリックされたカードを選択状態にする
+    card.classList.add('selected');
+    
+    // 選択されたスタイリストの名前を取得
+    const selectedStylist = card.dataset.stylist;
+    console.log('選択されたスタイリスト:', selectedStylist);
+
+    // 必要であれば選択内容を他の処理に送る
+    // 例: フォームデータに追加
+    document.querySelector('#selectedStylistInput').value = selectedStylist;
+  });
+});
+
 
 
 
@@ -467,7 +585,7 @@ const reservation = {
     }
   ].filter(pref => pref.month && pref.day && pref.time), // 必須項目が揃っている場合のみフィルタ
   menu: document.getElementById('menu').value,
-  staff: document.getElementById('staff')?.value || '',
+  staff: document.getElementById('selectedStylistInput')?.value || '',
   phone: document.getElementById('phoneNumber')?.value || '',
   comments: document.getElementById('comments')?.value || ''
 };
