@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>予約フォーム</title>
+  <style>
+    /* 基本的なスタイル */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f8f8f8;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      
+    }
+    h1 {
+      text-align: center;
+      color: #FFF;
+      margin-top: 20px;
+      background-color: #4CAF50;
+      padding: 10px 0;
+    }
+    .title {
+      font-size: 1.6em;
+      color: #4CAF50;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .date-container {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .input-wrapper {
+      margin: 10px;
+    }
+    .input-label {
+      font-size: 1.2em;
+      margin-bottom: 5px;
+      display: block;
+    }
+    .input-select,
+    .input-field,
+    .input-textarea {
+      font-size: 1em;
+      padding: 10px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      transition: border-color 0.3s ease;
+    }
+    .input-select:focus,
+    .input-field:focus,
+    .input-textarea:focus {
+      outline: none;
+      border-color: #4CAF50;
+      background-color: #fff;
+    }
+    button {
+      padding: 12px;
+      font-size: 1.5em;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      height: 100px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #other-input-container {
+      display: none;
+    }
+    #addSecondChoice, #addThirdChoice {
+  margin: 10px 0; /* 上下に10pxの余白を追加 */
+  height: 60px; /* ボタンの高さを少し小さく */
+  font-size: 1.5em; /* フォントサイズを少し小さく */
+}
+  </style>
+  
+</head>
+
+<body>
+  
+  <script src="https://static.line-scdn.net/liff/2.1/sdk.js"></script>
+  <h1>OASIS<br>予約希望フォーム</h1>
+
+  <form id="reservationForm">
+    <!-- 名前 -->
+    <h2 class="title">予約者名</h2>
+    <div class="input-wrapper">
+      <label for="name" class="input-label">予約者名:</label>
+      <input type="text" id="name" name="name" placeholder="オアシス太郎" class="input-field" required><br><br>
+    </div>
+
+    <!-- 第1希望 -->
+    <h2 class="title">第1希望</h2>
+    <div class="date-container">
+      <div class="input-wrapper">
+        <label for="month1" class="input-label">月:</label>
+        <select id="month1" name="month1" class="input-select" required>
+          <!-- 月の選択肢 -->
+          <option value="1">1月</option>
+          <option value="2">2月</option>
+          <option value="3">3月</option>
+          <option value="4">4月</option>
+          <option value="5">5月</option>
+          <option value="6">6月</option>
+          <option value="7">7月</option>
+          <option value="8">8月</option>
+          <option value="9">9月</option>
+          <option value="10">10月</option>
+          <option value="11">11月</option>
+          <option value="12">12月</option>
+        </select>
+      </div>
+
+      <div class="input-wrapper">
+        <label for="day1" class="input-label">日:</label>
+        <select id="day1" name="day1" class="input-select" required></select>
+      </div>
+
+      <div class="input-wrapper">
+        <label for="time1" class="input-label">時間:</label>
+        <select id="time1" name="time1" class="input-select" required>
+          <!-- 時間の選択肢 -->
+          <option value="9:00">9:00</option>
+          <option value="10:00">10:00</option>
+          <option value="11:00">11:00</option>
+          <option value="12:00">12:00</option>
+          <option value="13:00">13:00</option>
+          <option value="14:00">14:00</option>
+          <option value="15:00">15:00</option>
+          <option value="16:00">16:00</option>
+          <option value="17:00">17:00</option>
+          <option value="18:00">18:00</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 希望2 / 希望3の追加ボタン -->
+    <button type="button" id="addSecondChoice">第2希望を追加</button>
+    <div id="secondChoice"></div>
+    
+
+    
+
+    <button type="button" id="addThirdChoice">第3希望を追加</button>
+    <div id="thirdChoice"></div>
+
+<!-- 備考 -->
+<h2 class="title">メニュー:</h2>
+<div class="input-wrapper">
+  <label for="menu" class="input-label">ご希望メニュー</label>
+  <textarea id="menu" name="menu" class="input-field" rows="4" placeholder="(例)カットとカラーとトリートメント"></textarea>
+</div>
+
+
+   
+
+    <!-- スタッフ -->
+    <h2 class="title">担当スタイリスト:</h2>
+    <div class="input-wrapper">
+      <label for="staff" class="input-label">スタイリスト:</label>
+      <select id="staff" name="staff" class="input-select" required>
+        <option value="指名なし">指定なし</option>
+        <option value="岡崎富之【オーナー】">岡崎富之【オーナー】</option>
+        <option value="岡崎寿美子【店長】">岡崎寿美子【店長】</option>
+      </select>
+    </div>
+
+    <!-- 電話番号 -->
+    <h2 class="title">電話番号:</h2>
+    <div class="input-wrapper">
+      <label for="phoneNumber" class="input-label">電話番号:</label>
+      <input type="text" id="phoneNumber" class="input-field" placeholder="例: 090-1234-5678 または 09012345678" required>
+    </div>
+
+    <!-- 備考 -->
+    <h2 class="title">備考:</h2>
+    <div class="input-wrapper">
+      <label for="comments" class="input-label">ご要望・コメント:</label>
+      <textarea id="comments" name="comments" class="input-field" rows="4" placeholder="ご要望があればご記入ください"></textarea>
+    </div>
+
+    <!-- 送信ボタン -->
+    <button type="submit"id="someButton">予約希望を送信</button>
+  </form>
+
+ 
+
+
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
+
+<script>
+  liff.init({
+  liffId: '2006595194-AkL3pQ0D' // LINE Developersから取得したLIFF ID
+}).then(() => {
+  console.log('LIFF initialized');
+}).catch((error) => {
+  console.error('LIFF initialization failed:', error);
+});
+
+  // 特定の日付の曜日を計算して、セレクトボックスに追加する関数
+  function populateDays() {
+    const select = document.getElementById('day1');
+    const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+
+    const today = new Date(); 
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate(); 
+
+    // 1日からその月の最終日までを表示
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(currentYear, currentMonth, day); 
+      const weekday = weekdays[date.getDay()];
+
+      // optionタグを作成
+      const option = document.createElement('option');
+      option.value = day; 
+      option.textContent = `${day}日 (${weekday})`; 
+
+      // セレクトボックスに追加
+      select.appendChild(option);
+    }
+  }
+
+  // ページロード時にpopulateDaysを実行
+  window.onload = populateDays;
+
+  // 月と日の選択肢を制御する関数
+  function updateDays(monthSelectId, daySelectId) {
+    const month = document.getElementById(monthSelectId).value;
+    const daySelect = document.getElementById(daySelectId);
+
+    // 日付をリセット
+    daySelect.innerHTML = '';
+
+    // 月ごとに日数を制限
+    let maxDays;
+    switch (month) {
+      case '2':
+        maxDays = 28; 
+        break;
+      case '4':
+      case '6':
+      case '9':
+      case '11':
+        maxDays = 30; 
+        break;
+      default:
+        maxDays = 31; 
+    }
+
+    // 日数の選択肢を作成
+    for (let i = 1; i <= maxDays; i++) {
+      const option = document.createElement("option");
+      option.value = i;
+      option.text = `${i}日`;
+      daySelect.appendChild(option);
+    }
+  }
+
+// 第2希望を追加
+document.getElementById('addSecondChoice').addEventListener('click', function() {
+    const secondChoiceDiv = document.getElementById('secondChoice');
+    
+    // もし第2希望フォームがまだ表示されていなければ、追加
+    if (!secondChoiceDiv.innerHTML) {
+        secondChoiceDiv.innerHTML = `
+            <h2 class="title">第2希望</h2>
+            <div class="input-wrapper">
+              <label for="month2" class="input-label">月:</label>
+              <select id="month2" name="month2" class="input-select" onchange="updateDays('month2', 'day2')" required>
+                <option value="1">1月</option>
+                <option value="2">2月</option>
+                <option value="3">3月</option>
+                <option value="4">4月</option>
+                <option value="5">5月</option>
+                <option value="6">6月</option>
+                <option value="7">7月</option>
+                <option value="8">8月</option>
+                <option value="9">9月</option>
+                <option value="10">10月</option>
+                <option value="11">11月</option>
+                <option value="12">12月</option>
+              </select>
+            </div>
+            <div class="input-wrapper">
+              <label for="day2" class="input-label">日:</label>
+              <select id="day2" name="day2" class="input-select" required></select>
+            </div>
+            <div class="input-wrapper">
+              <label for="time2" class="input-label">時間:</label>
+              <select id="time2" name="time2" class="input-select" required>
+                <option value="9:00">9:00</option>
+                <option value="10:00">10:00</option>
+                <option value="11:00">11:00</option>
+                <option value="12:00">12:00</option>
+                <option value="13:00">13:00</option>
+                <option value="14:00">14:00</option>
+                <option value="15:00">15:00</option>
+                <option value="16:00">16:00</option>
+                <option value="17:00">17:00</option>
+                <option value="18:00">18:00</option>
+              </select>
+            </div>
+        `;
+        updateDays('month2', 'day2');
+    } else {
+        // すでにフォームが表示されていれば非表示にする
+        secondChoiceDiv.innerHTML = '';
+    }
+});
+
+// 第3希望を追加
+document.getElementById('addThirdChoice').addEventListener('click', function() {
+    const thirdChoiceDiv = document.getElementById('thirdChoice');
+    
+    // もし第3希望フォームがまだ表示されていなければ、追加
+    if (!thirdChoiceDiv.innerHTML) {
+        thirdChoiceDiv.innerHTML = `
+            <h2 class="title">第3希望</h2>
+            <div class="input-wrapper">
+              <label for="month3" class="input-label">月:</label>
+              <select id="month3" name="month3" class="input-select" onchange="updateDays('month3', 'day3')" required>
+                <option value="1">1月</option>
+                <option value="2">2月</option>
+                <option value="3">3月</option>
+                <option value="4">4月</option>
+                <option value="5">5月</option>
+                <option value="6">6月</option>
+                <option value="7">7月</option>
+                <option value="8">8月</option>
+                <option value="9">9月</option>
+                <option value="10">10月</option>
+                <option value="11">11月</option>
+                <option value="12">12月</option>
+              </select>
+            </div>
+            <div class="input-wrapper">
+              <label for="day3" class="input-label">日:</label>
+              <select id="day3" name="day3" class="input-select" required></select>
+            </div>
+            <div class="input-wrapper">
+              <label for="time3" class="input-label">時間:</label>
+              <select id="time3" name="time3" class="input-select" required>
+                <option value="9:00">9:00</option>
+                <option value="10:00">10:00</option>
+                <option value="11:00">11:00</option>
+                <option value="12:00">12:00</option>
+                <option value="13:00">13:00</option>
+                <option value="14:00">14:00</option>
+                <option value="15:00">15:00</option>
+                <option value="16:00">16:00</option>
+                <option value="17:00">17:00</option>
+                <option value="18:00">18:00</option>
+              </select>
+            </div>
+        `;
+        updateDays('month3', 'day3');
+    } else {
+        // すでにフォームが表示されていれば非表示にする
+        thirdChoiceDiv.innerHTML = '';
+    }
+});
+
+function updateDays(monthId, dayId) {
+    const month = parseInt(document.getElementById(monthId).value); // 選択された月を整数として取得
+    const year = 2024; // 固定の年を使用
+
+    // ここで選択された月に基づいて、日付を動的に追加
+    const daysInMonth = new Date(year, month, 0).getDate(); // 選択された月の日数を取得
+
+    let daysOptions = '';
+    for (let i = 1; i <= daysInMonth; i++) {
+        daysOptions += `<option value="${i}">${i}日</option>`;
+    }
+
+    // 日付のセレクトボックスを更新
+    const daysSelect = document.getElementById(dayId);
+    daysSelect.innerHTML = daysOptions;
+}
+
+
+   
+
+
+
+  // 月が変更された時に日付の選択肢を更新
+  const monthSelectors = ['month1', 'month2', 'month3'];
+  const daySelectors = ['day1', 'day2', 'day3'];
+
+
+
+
+document.getElementById('phoneNumber').addEventListener('input', function (e) {
+  const phoneInput = e.target.value;
+  const isValid = /^(\d{2,4}-?\d{2,4}-?\d{4})$/.test(phoneInput); // ハイフンあり・なし対応
+  if (!isValid) {
+    e.target.setCustomValidity('電話番号は正しい形式で入力してください（例: 090-1234-5678 または 09012345678）');
+  } else {
+    e.target.setCustomValidity('');
+  }
+});
+
+ // 名前と電話番号の自動入力
+ const nameInput = document.getElementById("name");
+  const phoneInput = document.getElementById("phoneNumber");
+
+  // 名前と電話番号の記憶
+  nameInput.value = localStorage.getItem("name") || '';
+  phoneInput.value = localStorage.getItem("phoneNumber") || '';
+
+  // 名前と電話番号を保存
+  nameInput.addEventListener('input', function() {
+    localStorage.setItem("name", nameInput.value);
+  });
+  phoneInput.addEventListener('input', function() {
+    localStorage.setItem("phoneNumber", phoneInput.value);
+  });
+ // 送信ボタンがクリックされた時の処理
+ document.getElementById("someButton").addEventListener("click", function () {
+  console.log("Button clicked");
+  event.preventDefault();  // デフォルトのフォーム送信を防止
+
+  // フォームのバリデーションチェック
+  const name = document.getElementById('name').value;
+  if (!name) {
+    alert('名前は必須です');
+    return;
+  }
+
+  const phone = document.getElementById('phoneNumber').value;
+  if (!phone) {
+    alert('電話番号は必須です');
+    return;
+  }
+
+// 予約情報をオブジェクトにまとめる
+const reservation = {
+  name: document.getElementById('name')?.value || '',
+  preferences: [
+    {
+      month: document.getElementById('month1')?.value || '',
+      day: document.getElementById('day1')?.value || '',
+      time: document.getElementById('time1')?.value || ''
+    },
+    {
+      month: document.getElementById('month2')?.value || '',
+      day: document.getElementById('day2')?.value || '',
+      time: document.getElementById('time2')?.value || ''
+    },
+    {
+      month: document.getElementById('month3')?.value || '',
+      day: document.getElementById('day3')?.value || '',
+      time: document.getElementById('time3')?.value || ''
+    }
+  ].filter(pref => pref.month && pref.day && pref.time), // 必須項目が揃っている場合のみフィルタ
+  menu: document.getElementById('menu').value,
+  staff: document.getElementById('staff')?.value || '',
+  phone: document.getElementById('phoneNumber')?.value || '',
+  comments: document.getElementById('comments')?.value || ''
+};
+
+ // 送信メッセージの構築
+let message = `予約者名: ${reservation.name}\n`;
+
+// 第1希望〜第3希望を表示
+if (reservation.preferences.length > 0) {
+  reservation.preferences.forEach((pref, index) => {
+    if (pref.month && pref.day && pref.time) {
+// 曜日を計算して表示に追加
+const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+const date = new Date(2024, pref.month - 1, pref.day);
+const weekday = weekdays[date.getDay()];
+
+// メッセージに曜日を追加して表示
+message += `第${index + 1}希望: ${pref.month}月${pref.day}日 (${weekday}) ${pref.time}時\n`;
+}});
+} else {
+  message += '第2希望はありません。\n';  // 第2希望がない場合のメッセージ
+}
+
+// メニューの表示
+message += `メニュー: ${reservation.menu}`;
+message += `\n`;
+
+
+// スタイリスト、電話番号、コメントの表示
+message += `担当スタイリスト: ${reservation.staff}\n電話番号: ${reservation.phone}\nコメント: ${reservation.comments}`;
+
+console.log(message);  // メッセージ内容をコンソールに出力して確認
+
+
+
+  // LINEメッセージ送信
+  liff.sendMessages([{
+    type: 'text',
+    text: message
+  }]).then(function () {
+    alert('予約希望が送信されました！\n確認いたしますのでしばらくお待ちください！');
+    liff.closeWindow();
+  }).catch(function (error) {
+    alert('エラーが発生しました: ' + error.message || error);
+  });
+});
+
+
+</script>
+</body>
+</html>
