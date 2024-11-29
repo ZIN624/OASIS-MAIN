@@ -145,6 +145,21 @@
   transition: all 0.3s ease;
 }
 
+#confirmationSection {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+#confirmationSection h3 {
+  margin-bottom: 10px;
+}
+#confirmationSection p {
+  margin: 5px 0;
+}
+button {
+  margin: 5px;
+}
 
   </style>
   
@@ -280,7 +295,20 @@
     </div>
 
     <!-- 送信ボタン -->
-    <button type="submit"id="someButton">予約希望を送信</button>
+    <button id="confirmButton">確認する</button>
+
+<div id="confirmationSection" style="display: none;">
+  <h3>予約内容の確認</h3>
+  <p><strong>スタイリスト:</strong> <span id="confirmStylist"></span></p>
+  <p><strong>日付:</strong> <span id="confirmDate"></span></p>
+  <p><strong>時間:</strong> <span id="confirmTime"></span></p>
+  <p><strong>メニュー:</strong> <span id="confirmMenu"></span></p>
+  <p><strong>コメント:</strong> <span id="confirmComments"></span></p>
+  <button id="sendButton">送信する</button>
+  <button id="editButton">修正する</button>
+</div>
+
+    
   </form>
 
  
@@ -630,6 +658,44 @@ console.log(message);  // メッセージ内容をコンソールに出力して
     liff.closeWindow();
   }).catch(function (error) {
     alert('エラーが発生しました: ' + error.message || error);
+  });
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const confirmButton = document.getElementById('confirmButton');
+  const sendButton = document.getElementById('sendButton');
+  const editButton = document.getElementById('editButton');
+  const confirmationSection = document.getElementById('confirmationSection');
+  const formSection = document.getElementById('formSection'); // 入力部分を囲む要素
+  const stylistInput = document.querySelector('#selectedStylistInput');
+  const dateInput = document.querySelector('#dateInput');
+  const timeInput = document.querySelector('#timeInput');
+  const menuInput = document.querySelector('#menuInput');
+  const commentsInput = document.querySelector('#commentsInput');
+
+  // 確認画面に切り替える
+  confirmButton.addEventListener('click', () => {
+    document.getElementById('confirmStylist').textContent = stylistInput.value || '未選択';
+    document.getElementById('confirmDate').textContent = dateInput.value || '未選択';
+    document.getElementById('confirmTime').textContent = timeInput.value || '未選択';
+    document.getElementById('confirmMenu').textContent = menuInput.value || '未選択';
+    document.getElementById('confirmComments').textContent = commentsInput.value || 'なし';
+
+    formSection.style.display = 'none';
+    confirmationSection.style.display = 'block';
+  });
+
+  // 修正するボタン
+  editButton.addEventListener('click', () => {
+    confirmationSection.style.display = 'none';
+    formSection.style.display = 'block';
+  });
+
+  // 送信するボタン
+  sendButton.addEventListener('click', () => {
+    // 実際の送信処理をここに追加
+    alert('予約が送信されました！');
+    // 必要ならフォームをリセット
+    // document.querySelector('form').reset();
   });
 });
 
