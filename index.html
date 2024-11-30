@@ -189,7 +189,8 @@
   width: 80%;
   height: 80%;
   overflow: auto;
-  font-size: 20px;
+  font-size: 18px;
+  font-style: ;
 }
 
 .close {
@@ -216,7 +217,7 @@
 }
 
 .btn:hover {
-  background-color: #007bb5;
+  background-color: #317534;
 }
 .reservationDetails{
    font-size: 300px;
@@ -347,8 +348,8 @@
     <span class="close">&times;</span>
     <h2>予約内容確認</h2>
     <pre id="reservationDetails"></pre>
-    <button id="confirmReservation" class="btn">予約する</button>
-    <button id="cancelReservation" class="btn">キャンセル</button>
+    <button id="confirmReservation" class="btn">予約希望を送る</button>
+    <button id="cancelReservation" class="btn">修正する</button>
   </div>
 </div>
 <!-- フォーム送信ボタン -->
@@ -365,11 +366,12 @@ liff.init({
   liffId: '2006621786-8K7V4W3M'
 }).then(() => {
   console.log('LIFF initialized');
-  // フォームを表示する
   document.getElementById('reservationForm').classList.remove('hidden');
 }).catch((error) => {
   console.error('LIFF initialization failed:', error);
+  alert('LIFF initialization failed. Please try again later.');
 });
+
 
    // 営業する特別な日（祝日など）
 const specialWorkingDays = [
@@ -581,6 +583,10 @@ document.getElementById('submitReservation').addEventListener('click', function 
     return;
   }
 
+  if (!stylist) {
+    alert('担当スタイリストをお選びください');
+    return;
+  }
   // 第1～第3希望を取得
   const preferences = ['1', '2', '3'].map(num => ({
     date: document.getElementById(`day${num}`)?.value || '',
