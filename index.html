@@ -150,6 +150,77 @@
   color: red;  /* LIFFのページ内では適用されます */
 }
 
+.hidden {
+  display: none;
+}
+
+/* 送信ボタンのスタイル */
+#submitReservation {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 32px;
+}
+
+#submitReservation:hover {
+  background-color: #4CAF50;
+}
+
+/* モーダル関連 */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  height: 80%;
+  overflow: auto;
+  font-size: 20px;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 30px;
+}
+
+.btn:hover {
+  background-color: #007bb5;
+}
+.reservationDetails{
+   font-size: 300px;
+}
   </style>
   
 </head>
@@ -268,8 +339,20 @@
       <textarea id="comments" name="comments" class="input-field" rows="4" placeholder="ご要望があればご記入ください"></textarea>
     </div>
 
-    <!-- 送信ボタン -->
-    <button type="submit"id="someButton">予約希望を送信</button>
+    
+
+<!-- 予約確認モーダル -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>予約内容確認</h2>
+    <pre id="reservationDetails"></pre>
+    <button id="confirmReservation" class="btn">予約する</button>
+    <button id="cancelReservation" class="btn">キャンセル</button>
+  </div>
+</div>
+<!-- フォーム送信ボタン -->
+<button id="submitReservation" class="btn">送信</button>
   </form>
 
  
@@ -278,15 +361,16 @@
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
 
   <script>
-    // LIFF初期化
-    liff.init({
-      liffId: '2006621786-8K7V4W3M'
-    }).then(() => {
-      console.log('LIFF initialized');
-    }).catch((error) => {
-      console.error('LIFF initialization failed:', error);
-    });
-  
+liff.init({
+  liffId: '2006621786-8K7V4W3M'
+}).then(() => {
+  console.log('LIFF initialized');
+  // フォームを表示する
+  document.getElementById('reservationForm').classList.remove('hidden');
+}).catch((error) => {
+  console.error('LIFF initialization failed:', error);
+});
+
    // 営業する特別な日（祝日など）
 const specialWorkingDays = [
   '2024-12-23'  // 例: 12月23日（月曜日）を営業日として追加
@@ -375,23 +459,31 @@ function populateDateOptions(selectId) {
   });
 }
 
-  // 名前と電話番号のデータをローカルストレージに保存
-  function saveUserData(name, phone) {
-    localStorage.setItem('userName', name);
-    localStorage.setItem('userPhone', phone);
+document.getElementById('phoneNumber').addEventListener('input', function (e) {
+  const phoneInput = e.target.value;
+  const isValid = /^(\d{2,4}-?\d{2,4}-?\d{4})$/.test(phoneInput); // ハイフンあり・なし対応
+  if (!isValid) {
+    e.target.setCustomValidity('電話番号は正しい形式で入力してください（例: 090-1234-5678 または 09012345678）');
+  } else {
+    e.target.setCustomValidity('');
   }
+});
+ // 名前と電話番号の自動入力
+ const nameInput = document.getElementById("name");
+  const phoneInput = document.getElementById("phoneNumber");
 
-  // ローカルストレージから名前と電話番号をロード
-  function loadUserData() {
-    const savedName = localStorage.getItem('userName');
-    const savedPhone = localStorage.getItem('userPhone');
-    if (savedName) {
-      document.getElementById('name').value = savedName;
-    }
-    if (savedPhone) {
-      document.getElementById('phoneNumber').value = savedPhone;
-    }
-  }
+  // 名前と電話番号の記憶
+  nameInput.value = localStorage.getItem("name") || '';
+  phoneInput.value = localStorage.getItem("phoneNumber") || '';
+
+  // 名前と電話番号を保存
+  nameInput.addEventListener('input', function() {
+    localStorage.setItem("name", nameInput.value);
+  });
+  phoneInput.addEventListener('input', function() {
+    localStorage.setItem("phoneNumber", phoneInput.value);
+  });
+
 
     // 日付更新処理
     function updateDays(monthId, dayId) {
@@ -464,67 +556,73 @@ function populateDateOptions(selectId) {
    window.onload = function() {
     populateDateOptions('day1');
   };
+
+
     // 送信処理
-document.getElementById('someButton').addEventListener('click', function (event) {
-  event.preventDefault();
+ // 予約フォーム送信時
+document.getElementById('submitReservation').addEventListener('click', function (event) {
+  event.preventDefault(); // デフォルトの送信を防止
 
-  const name = document.getElementById('name')?.value || '';
-  const phone = document.getElementById('phoneNumber')?.value || '';
+  // 入力内容の取得
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phoneNumber').value.trim();
+  const menu = document.getElementById('menu').value.trim();
+  const comments = document.getElementById('comments').value.trim();
+  const stylist = document.getElementById('selectedStylistInput')?.value.trim() || '';
 
-  // 名前と電話番号が未入力の場合のアラート
+  // 入力チェック（名前と電話番号は必須）
   if (!name) {
-    alert('名前を入力してください');
-    return; // 処理を中断
+    alert('名前を入力してください。');
+    return;
   }
-  if (!phone) {
-    alert('電話番号を入力してください');
-    return; // 処理を中断
+
+  if (!phone.match(/^0\d{1,4}-?\d{1,4}-?\d{4}$/)) {
+    alert('電話番号は「09012345678」または「090-1234-5678」の形式で入力してください。');
+    return;
   }
-  saveUserData(name, phone); // データ保存
 
-const firstChoiceDate = document.getElementById('day1').value;
-const firstChoiceTime = document.getElementById('time1').value;
-const firstChoiceStylist = document.getElementById('selectedStylistInput').value;
+  // 第1～第3希望を取得
+  const preferences = ['1', '2', '3'].map(num => ({
+    date: document.getElementById(`day${num}`)?.value || '',
+    time: document.getElementById(`time${num}`)?.value || '',
+  })).filter(pref => pref.date && pref.time); // 空の希望を除外
 
-const secondChoiceDate = document.getElementById('day2')?.value || '';
-const secondChoiceTime = document.getElementById('time2')?.value || '';
-const secondChoiceStylist = document.getElementById('selectedStylistInput')?.value || '';
+  // 予約詳細の確認内容を作成
+document.getElementById('reservationDetails').textContent = `予約希望内容:
+名前: ${name}
+電話番号: ${phone}
+ご希望メニュー: ${menu}
+担当スタイリスト: ${stylist}
+${preferences.map((pref, index) => `第${index + 1}希望: ${pref.date} ${pref.time}`).join('\n')}
+備考: ${comments}`;
 
-const thirdChoiceDate = document.getElementById('day3')?.value || '';
-const thirdChoiceTime = document.getElementById('time3')?.value || '';
-const thirdChoiceStylist = document.getElementById('selectedStylistInput')?.value || '';
+  // モーダルに予約内容を表示
+  document.getElementById('modal').style.display = 'block';
+  document.getElementById('modal').classList.remove('hidden');
+});
 
-const reservationDetails = `
-  予約内容:
-  名前: ${name}
-  電話番号: ${phone}
-  第1希望: ${firstChoiceDate} ${firstChoiceTime} ${firstChoiceStylist}
-  第2希望: ${secondChoiceDate} ${secondChoiceTime} ${secondChoiceStylist}
-  第3希望: ${thirdChoiceDate} ${thirdChoiceTime} ${thirdChoiceStylist}`;
+// 予約を確定するボタン
+document.getElementById("confirmReservation").addEventListener("click", function() {
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phoneNumber').value.trim();
+  const menu = document.getElementById('menu').value.trim();
+  const stylist = document.getElementById('selectedStylistInput')?.value.trim() || '';
+  const comments = document.getElementById('comments').value.trim();
+  const preferences = ['1', '2', '3'].map(num => ({
+    date: document.getElementById(`day${num}`)?.value || '',
+    time: document.getElementById(`time${num}`)?.value || '',
+  })).filter(pref => pref.date && pref.time);
 
-alert(reservationDetails); // 内容確認用のアラートを表示
-  const reservation = {
-    name: name,
-    preferences: ['month1', 'month2', 'month3'].map((monthId, i) => ({
-      month: document.getElementById(monthId)?.value || '',
-      day: document.getElementById(`day${i + 1}`)?.value || '',
-      time: document.getElementById(`time${i + 1}`)?.value || ''
-    })).filter(pref => pref.month && pref.day && pref.time),
-    menu: document.getElementById('menu').value,
-    staff: document.getElementById('selectedStylistInput')?.value || '',
-    phone: phone,
-    comments: document.getElementById('comments')?.value || ''
-  };
-
-  let message = `予約者名: ${reservation.name}\n`;
-  reservation.preferences.forEach((pref, index) => {
+  // 予約詳細メッセージ作成
+  let message = `予約者名: ${name}\n`;
+  preferences.forEach((pref, index) => {
     const date = new Date(2024, pref.month - 1, pref.day);
     const weekday = ["日", "月", "火", "水", "木", "金", "土"][date.getDay()];
     message += `第${index + 1}希望: ${pref.month}月${pref.day}日 (${weekday}) ${pref.time}\n`;
   });
+  message += `メニュー: ${menu}\n担当スタイリスト: ${stylist}\n電話番号: ${phone}\nコメント: ${comments}`;
 
-  message += `メニュー: ${reservation.menu}\n担当スタイリスト: ${reservation.staff}\n電話番号: ${reservation.phone}\nコメント: ${reservation.comments}`;
-
+  // LINEメッセージ送信
   liff.sendMessages([{ type: 'text', text: message }])
     .then(() => {
       alert('予約希望が送信されました！');
@@ -532,14 +630,31 @@ alert(reservationDetails); // 内容確認用のアラートを表示
     }).catch(error => {
       alert('エラーが発生しました: ' + error.message);
     });
+
+  // モーダルを閉じる
+  document.getElementById('modal').style.display = 'none';
 });
 
+// キャンセルボタン
+document.getElementById('cancelReservation').addEventListener('click', function () {
+  // モーダルを閉じる
+  document.getElementById('modal').style.display = 'none';
+});
+
+// モーダル外をクリックしたら閉じる
+window.addEventListener("click", function(event) {
+  if (event.target === document.getElementById("modal")) {
+    document.getElementById("modal").style.display = "none";
+  }
+});
   
     // ページロード時処理
     document.addEventListener('DOMContentLoaded', () => {
       populateDateOptions('day1');
     });
-  </script>
+
+
+    </script>
   
   
 </body>
