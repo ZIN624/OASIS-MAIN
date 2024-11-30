@@ -148,7 +148,6 @@
 /* 土日を赤く表示 */
 .red-day {
   color: red;;
-  
 }
 
   </style>
@@ -302,7 +301,17 @@ function generateDates() {
   const today = new Date();
   const maxDays = 180;  // 半年分の日付を生成
   const dates = [];
-
+  // 今日の日付を追加
+  const formattedToday = `${today.getFullYear()}-${(today.getMonth() + 1)
+    .toString()
+    .padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+  const weekdayToday = ["日", "月", "火", "水", "木", "金", "土"][today.getDay()];
+  const isWeekendToday = (today.getDay() === 0 || today.getDay() === 6);
+  dates.push({
+    date: formattedToday,
+    weekday: weekdayToday,
+    isWeekend: isWeekendToday
+  });
   for (let i = 0; i < maxDays; i++) {
     const nextDate = new Date(today);
     nextDate.setDate(today.getDate() + i);
@@ -341,10 +350,13 @@ function populateDateOptions(selectId) {
   const daySelect = document.getElementById(selectId);
   const dates = generateDates();
 
+  // 既存の選択肢をクリア
+  daySelect.innerHTML = '';
+
   dates.forEach((dateObj, index) => {
     const option = document.createElement('option');
     option.value = dateObj.date;
-    
+
     // 日付と曜日を適切に表示
     option.textContent = `${dateObj.date} (${dateObj.weekday})`;
 
@@ -353,11 +365,12 @@ function populateDateOptions(selectId) {
       option.classList.add('red-day');
     }
 
-    daySelect.appendChild(option);
-
+    // 初期選択（第1希望のデフォルト選択を今日に設定）
     if (index === 0) {
       option.selected = true;
     }
+
+    daySelect.appendChild(option);
   });
 }
 
