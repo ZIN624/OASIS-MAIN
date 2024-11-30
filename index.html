@@ -375,7 +375,23 @@ function populateDateOptions(selectId) {
   });
 }
 
+  // 名前と電話番号のデータをローカルストレージに保存
+  function saveUserData(name, phone) {
+    localStorage.setItem('userName', name);
+    localStorage.setItem('userPhone', phone);
+  }
 
+  // ローカルストレージから名前と電話番号をロード
+  function loadUserData() {
+    const savedName = localStorage.getItem('userName');
+    const savedPhone = localStorage.getItem('userPhone');
+    if (savedName) {
+      document.getElementById('name').value = savedName;
+    }
+    if (savedPhone) {
+      document.getElementById('phoneNumber').value = savedPhone;
+    }
+  }
 
     // 日付更新処理
     function updateDays(monthId, dayId) {
@@ -449,39 +465,75 @@ function populateDateOptions(selectId) {
     populateDateOptions('day1');
   };
     // 送信処理
-    document.getElementById('someButton').addEventListener('click', function (event) {
-      event.preventDefault();
-  
-      const reservation = {
-        name: document.getElementById('name')?.value || '',
-        preferences: ['month1', 'month2', 'month3'].map((monthId, i) => ({
-          month: document.getElementById(monthId)?.value || '',
-          day: document.getElementById(`day${i + 1}`)?.value || '',
-          time: document.getElementById(`time${i + 1}`)?.value || ''
-        })).filter(pref => pref.month && pref.day && pref.time),
-        menu: document.getElementById('menu').value,
-        staff: document.getElementById('selectedStylistInput')?.value || '',
-        phone: document.getElementById('phoneNumber')?.value || '',
-        comments: document.getElementById('comments')?.value || ''
-      };
-  
-      let message = `予約者名: ${reservation.name}\n`;
-      reservation.preferences.forEach((pref, index) => {
-        const date = new Date(2024, pref.month - 1, pref.day);
-        const weekday = ["日", "月", "火", "水", "木", "金", "土"][date.getDay()];
-        message += `第${index + 1}希望: ${pref.month}月${pref.day}日 (${weekday}) ${pref.time}\n`;
-      });
-  
-      message += `メニュー: ${reservation.menu}\n担当スタイリスト: ${reservation.staff}\n電話番号: ${reservation.phone}\nコメント: ${reservation.comments}`;
-  
-      liff.sendMessages([{ type: 'text', text: message }])
-        .then(() => {
-          alert('予約希望が送信されました！');
-          liff.closeWindow();
-        }).catch(error => {
-          alert('エラーが発生しました: ' + error.message);
-        });
+document.getElementById('someButton').addEventListener('click', function (event) {
+  event.preventDefault();
+
+  const name = document.getElementById('name')?.value || '';
+  const phone = document.getElementById('phoneNumber')?.value || '';
+
+  // 名前と電話番号が未入力の場合のアラート
+  if (!name) {
+    alert('名前を入力してください');
+    return; // 処理を中断
+  }
+  if (!phone) {
+    alert('電話番号を入力してください');
+    return; // 処理を中断
+  }
+  saveUserData(name, phone); // データ保存
+
+const firstChoiceDate = document.getElementById('day1').value;
+const firstChoiceTime = document.getElementById('time1').value;
+const firstChoiceStylist = document.getElementById('selectedStylistInput').value;
+
+const secondChoiceDate = document.getElementById('day2')?.value || '';
+const secondChoiceTime = document.getElementById('time2')?.value || '';
+const secondChoiceStylist = document.getElementById('selectedStylistInput')?.value || '';
+
+const thirdChoiceDate = document.getElementById('day3')?.value || '';
+const thirdChoiceTime = document.getElementById('time3')?.value || '';
+const thirdChoiceStylist = document.getElementById('selectedStylistInput')?.value || '';
+
+const reservationDetails = `
+  予約内容:
+  名前: ${name}
+  電話番号: ${phone}
+  第1希望: ${firstChoiceDate} ${firstChoiceTime} ${firstChoiceStylist}
+  第2希望: ${secondChoiceDate} ${secondChoiceTime} ${secondChoiceStylist}
+  第3希望: ${thirdChoiceDate} ${thirdChoiceTime} ${thirdChoiceStylist}`;
+
+alert(reservationDetails); // 内容確認用のアラートを表示
+  const reservation = {
+    name: name,
+    preferences: ['month1', 'month2', 'month3'].map((monthId, i) => ({
+      month: document.getElementById(monthId)?.value || '',
+      day: document.getElementById(`day${i + 1}`)?.value || '',
+      time: document.getElementById(`time${i + 1}`)?.value || ''
+    })).filter(pref => pref.month && pref.day && pref.time),
+    menu: document.getElementById('menu').value,
+    staff: document.getElementById('selectedStylistInput')?.value || '',
+    phone: phone,
+    comments: document.getElementById('comments')?.value || ''
+  };
+
+  let message = `予約者名: ${reservation.name}\n`;
+  reservation.preferences.forEach((pref, index) => {
+    const date = new Date(2024, pref.month - 1, pref.day);
+    const weekday = ["日", "月", "火", "水", "木", "金", "土"][date.getDay()];
+    message += `第${index + 1}希望: ${pref.month}月${pref.day}日 (${weekday}) ${pref.time}\n`;
+  });
+
+  message += `メニュー: ${reservation.menu}\n担当スタイリスト: ${reservation.staff}\n電話番号: ${reservation.phone}\nコメント: ${reservation.comments}`;
+
+  liff.sendMessages([{ type: 'text', text: message }])
+    .then(() => {
+      alert('予約希望が送信されました！');
+      liff.closeWindow();
+    }).catch(error => {
+      alert('エラーが発生しました: ' + error.message);
     });
+});
+
   
     // ページロード時処理
     document.addEventListener('DOMContentLoaded', () => {
