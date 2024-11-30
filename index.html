@@ -607,6 +607,22 @@ ${preferences.map((pref, index) => `第${index + 1}希望: ${pref.date} ${pref.t
   document.getElementById('modal').classList.remove('hidden');
 });
 
+// モーダルを閉じる関数を共通化
+function closeModal() {
+  document.getElementById('modal').style.display = 'none';
+}
+
+// キャンセルボタン
+document.getElementById('cancelReservation').addEventListener('click', closeModal);
+
+// モーダル外をクリックしたら閉じる
+window.addEventListener("click", function(event) {
+  const modal = document.getElementById("modal");
+  if (event.target === modal) {
+    closeModal();
+  }
+});
+
 // 予約を確定するボタン
 document.getElementById("confirmReservation").addEventListener("click", function() {
   const name = document.getElementById('name').value.trim();
@@ -614,17 +630,25 @@ document.getElementById("confirmReservation").addEventListener("click", function
   const menu = document.getElementById('menu').value.trim();
   const stylist = document.getElementById('selectedStylistInput')?.value.trim() || '';
   const comments = document.getElementById('comments').value.trim();
+
+  // 予約希望の取得（第1希望、第2希望、第3希望）
   const preferences = ['1', '2', '3'].map(num => ({
     date: document.getElementById(`day${num}`)?.value || '',
     time: document.getElementById(`time${num}`)?.value || '',
   })).filter(pref => pref.date && pref.time);
 
+  // 入力値の確認（名前、電話番号、メニュー）
+  if (!name || !phone || !menu) {
+    alert("名前、電話番号、メニューを入力してください。");
+    return;
+  }
+
   // 予約詳細メッセージ作成
   let message = `予約者名: ${name}\n`;
   preferences.forEach((pref, index) => {
-    const date = new Date(2024, pref.month - 1, pref.day);
+    const date = new Date(pref.date); // 日付をDateオブジェクトに変換
     const weekday = ["日", "月", "火", "水", "木", "金", "土"][date.getDay()];
-    message += `第${index + 1}希望: ${pref.month}月${pref.day}日 (${weekday}) ${pref.time}\n`;
+    message += `第${index + 1}希望: ${date.getMonth() + 1}月${date.getDate()}日 (${weekday}) ${pref.time}\n`;
   });
   message += `メニュー: ${menu}\n担当スタイリスト: ${stylist}\n電話番号: ${phone}\nコメント: ${comments}`;
 
@@ -632,36 +656,18 @@ document.getElementById("confirmReservation").addEventListener("click", function
   liff.sendMessages([{ type: 'text', text: message }])
     .then(() => {
       alert('予約希望が送信されました！');
-      liff.closeWindow();
+      closeModal();  // モーダルを閉じる
+      liff.closeWindow();  // LIFFウィンドウを閉じる
     }).catch(error => {
       alert('エラーが発生しました: ' + error.message);
     });
-
-  // モーダルを閉じる
-  document.getElementById('modal').style.display = 'none';
 });
 
-// キャンセルボタン
-document.getElementById('cancelReservation').addEventListener('click', function () {
-  // モーダルを閉じる
-  document.getElementById('modal').style.display = 'none';
+// ページロード時処理
+document.addEventListener('DOMContentLoaded', () => {
+  populateDateOptions('day1');
 });
 
-// モーダル外をクリックしたら閉じる
-window.addEventListener("click", function(event) {
-  if (event.target === document.getElementById("modal")) {
-    document.getElementById("modal").style.display = "none";
-  }
-});
-  
-    // ページロード時処理
-    document.addEventListener('DOMContentLoaded', () => {
-      populateDateOptions('day1');
-    });
-
-
-    </script>
-  
-  
+</script>
 </body>
 </html>
