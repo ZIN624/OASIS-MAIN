@@ -145,6 +145,11 @@
   transition: all 0.3s ease;
 }
 
+/* 土日を赤く表示 */
+.red-day {
+  color: red;;
+  
+}
 
   </style>
   
@@ -167,23 +172,7 @@
     <h2 class="title">第1希望</h2>
     <div class="date-container">
       <div class="input-wrapper">
-        <label for="month1" class="input-label">月:</label>
-        <select id="month1" name="month1" class="input-select" required>
-          <!-- 月の選択肢 -->
-          <option value="1">1月</option>
-          <option value="2">2月</option>
-          <option value="3">3月</option>
-          <option value="4">4月</option>
-          <option value="5">5月</option>
-          <option value="6">6月</option>
-          <option value="7">7月</option>
-          <option value="8">8月</option>
-          <option value="9">9月</option>
-          <option value="10">10月</option>
-          <option value="11">11月</option>
-          <option value="12">12月</option>
-        </select>
-      </div>
+
 
       <div class="input-wrapper">
         <label for="day1" class="input-label">日:</label>
@@ -288,352 +277,204 @@
 
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
 
-<script>
-  liff.init({
-  liffId: '2006621786-8K7V4W3M' // LINE Developersから取得したLIFF ID
-}).then(() => {
-  console.log('LIFF initialized');
-}).catch((error) => {
-  console.error('LIFF initialization failed:', error);
-});
+  <script>
+    // LIFF初期化
+    liff.init({
+      liffId: '2006621786-8K7V4W3M'
+    }).then(() => {
+      console.log('LIFF initialized');
+    }).catch((error) => {
+      console.error('LIFF initialization failed:', error);
+    });
+  
+   // 営業する特別な日（祝日など）
+const specialWorkingDays = [
+  '2024-12-23'  // 例: 12月23日（月曜日）を営業日として追加
+];
 
-  // 特定の日付の曜日を計算して、セレクトボックスに追加する関数
-  function populateDays() {
-    const select = document.getElementById('day1');
-    const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+// 休暇日を追加 (通常の休日)
+const holidays = [
+  '2024-12-25',  // 休業日
+  '2024-01-01'   // 休業日
+];
 
-    const today = new Date(); 
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth();
-    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate(); 
+function generateDates() {
+  const today = new Date();
+  const maxDays = 180;  // 半年分の日付を生成
+  const dates = [];
 
-    // 1日からその月の最終日までを表示
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(currentYear, currentMonth, day); 
-      const weekday = weekdays[date.getDay()];
+  for (let i = 0; i < maxDays; i++) {
+    const nextDate = new Date(today);
+    nextDate.setDate(today.getDate() + i);
 
-      // optionタグを作成
-      const option = document.createElement('option');
-      option.value = day; 
-      option.textContent = `${day}日 (${weekday})`; 
+    const dayOfWeek = nextDate.getDay();
 
-      // セレクトボックスに追加
-      select.appendChild(option);
-    }
+    // 月曜日と火曜日は除外
+    if (dayOfWeek === 1 || dayOfWeek === 2) continue;
+
+    // 日付をフォーマット
+    const formattedDate = `${nextDate.getFullYear()}-${(nextDate.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}-${nextDate.getDate().toString().padStart(2, '0')}`;
+
+    // 休暇日リストに含まれていれば、その日をスキップ
+    if (holidays.includes(formattedDate)) continue;
+
+    // 曜日を取得
+    const weekday = ["日", "月", "火", "水", "木", "金", "土"][nextDate.getDay()];
+
+    // 土日なら赤色をつける
+    const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);  // 日曜日(0)または土曜日(6)
+    const dateWithStyle = {
+      date: formattedDate,
+      weekday: weekday,
+      isWeekend: isWeekend
+    };
+
+    dates.push(dateWithStyle);
   }
 
-  // ページロード時にpopulateDaysを実行
-  window.onload = populateDays;
+  return dates;
+}
 
-  // 月と日の選択肢を制御する関数
-  function updateDays(monthSelectId, daySelectId) {
-    const month = document.getElementById(monthSelectId).value;
-    const daySelect = document.getElementById(daySelectId);
+function populateDateOptions(selectId) {
+  const daySelect = document.getElementById(selectId);
+  const dates = generateDates();
 
-    // 日付をリセット
-    daySelect.innerHTML = '';
-
-    // 月ごとに日数を制限
-    let maxDays;
-    switch (month) {
-      case '2':
-        maxDays = 28; 
-        break;
-      case '4':
-      case '6':
-      case '9':
-      case '11':
-        maxDays = 30; 
-        break;
-      default:
-        maxDays = 31; 
-    }
-
-    // 日数の選択肢を作成
-    for (let i = 1; i <= maxDays; i++) {
-      const option = document.createElement("option");
-      option.value = i;
-      option.text = `${i}日`;
-      daySelect.appendChild(option);
-    }
-  }
-
-// 第2希望を追加
-document.getElementById('addSecondChoice').addEventListener('click', function() {
-    const secondChoiceDiv = document.getElementById('secondChoice');
+  dates.forEach((dateObj, index) => {
+    const option = document.createElement('option');
+    option.value = dateObj.date;
     
-    // もし第2希望フォームがまだ表示されていなければ、追加
-    if (!secondChoiceDiv.innerHTML) {
-        secondChoiceDiv.innerHTML = `
-            <h2 class="title">第2希望</h2>
-            <div class="input-wrapper">
-              <label for="month2" class="input-label">月:</label>
-              <select id="month2" name="month2" class="input-select" onchange="updateDays('month2', 'day2')" required>
-                <option value="1">1月</option>
-                <option value="2">2月</option>
-                <option value="3">3月</option>
-                <option value="4">4月</option>
-                <option value="5">5月</option>
-                <option value="6">6月</option>
-                <option value="7">7月</option>
-                <option value="8">8月</option>
-                <option value="9">9月</option>
-                <option value="10">10月</option>
-                <option value="11">11月</option>
-                <option value="12">12月</option>
-              </select>
-            </div>
-            <div class="input-wrapper">
-              <label for="day2" class="input-label">日:</label>
-              <select id="day2" name="day2" class="input-select" required></select>
-            </div>
-            <div class="input-wrapper">
-              <label for="time2" class="input-label">時間:</label>
-              <select id="time2" name="time2" class="input-select" required>
-                <option value="9:00">9:00</option>
-                <option value="10:00">10:00</option>
-                <option value="11:00">11:00</option>
-                <option value="12:00">12:00</option>
-                <option value="13:00">13:00</option>
-                <option value="14:00">14:00</option>
-                <option value="15:00">15:00</option>
-                <option value="16:00">16:00</option>
-                <option value="17:00">17:00</option>
-                <option value="18:00">18:00</option>
-              </select>
-            </div>
-        `;
-        updateDays('month2', 'day2');
-    } else {
-        // すでにフォームが表示されていれば非表示にする
-        secondChoiceDiv.innerHTML = '';
+    // 日付と曜日を適切に表示
+    option.textContent = `${dateObj.date} (${dateObj.weekday})`;
+
+    // 土日にはクラス "red-day" を追加
+    if (dateObj.isWeekend) {
+      option.classList.add('red-day');
     }
-});
 
-// 第3希望を追加
-document.getElementById('addThirdChoice').addEventListener('click', function() {
-    const thirdChoiceDiv = document.getElementById('thirdChoice');
-    
-    // もし第3希望フォームがまだ表示されていなければ、追加
-    if (!thirdChoiceDiv.innerHTML) {
-        thirdChoiceDiv.innerHTML = `
-            <h2 class="title">第3希望</h2>
-            <div class="input-wrapper">
-              <label for="month3" class="input-label">月:</label>
-              <select id="month3" name="month3" class="input-select" onchange="updateDays('month3', 'day3')" required>
-                <option value="1">1月</option>
-                <option value="2">2月</option>
-                <option value="3">3月</option>
-                <option value="4">4月</option>
-                <option value="5">5月</option>
-                <option value="6">6月</option>
-                <option value="7">7月</option>
-                <option value="8">8月</option>
-                <option value="9">9月</option>
-                <option value="10">10月</option>
-                <option value="11">11月</option>
-                <option value="12">12月</option>
-              </select>
-            </div>
-            <div class="input-wrapper">
-              <label for="day3" class="input-label">日:</label>
-              <select id="day3" name="day3" class="input-select" required></select>
-            </div>
-            <div class="input-wrapper">
-              <label for="time3" class="input-label">時間:</label>
-              <select id="time3" name="time3" class="input-select" required>
-                <option value="9:00">9:00</option>
-                <option value="10:00">10:00</option>
-                <option value="11:00">11:00</option>
-                <option value="12:00">12:00</option>
-                <option value="13:00">13:00</option>
-                <option value="14:00">14:00</option>
-                <option value="15:00">15:00</option>
-                <option value="16:00">16:00</option>
-                <option value="17:00">17:00</option>
-                <option value="18:00">18:00</option>
-              </select>
-            </div>
-        `;
-        updateDays('month3', 'day3');
-    } else {
-        // すでにフォームが表示されていれば非表示にする
-        thirdChoiceDiv.innerHTML = '';
+    daySelect.appendChild(option);
+
+    if (index === 0) {
+      option.selected = true;
     }
-});
+  });
+}
 
-function updateDays(monthId, dayId) {
-    const month = parseInt(document.getElementById(monthId).value); // 選択された月を整数として取得
-    const year = 2024; // 固定の年を使用
 
-    // ここで選択された月に基づいて、日付を動的に追加
-    const daysInMonth = new Date(year, month, 0).getDate(); // 選択された月の日数を取得
 
-    let daysOptions = '';
-    for (let i = 1; i <= daysInMonth; i++) {
+    // 日付更新処理
+    function updateDays(monthId, dayId) {
+      const month = parseInt(document.getElementById(monthId).value);
+      const year = 2024;
+      const daysInMonth = new Date(year, month, 0).getDate();
+  
+      let daysOptions = '';
+      for (let i = 1; i <= daysInMonth; i++) {
         daysOptions += `<option value="${i}">${i}日</option>`;
+      }
+  
+      const daysSelect = document.getElementById(dayId);
+      daysSelect.innerHTML = daysOptions;
     }
-
-    // 日付のセレクトボックスを更新
-    const daysSelect = document.getElementById(dayId);
-    daysSelect.innerHTML = daysOptions;
-}
-
-
-const selectButtons = document.querySelectorAll('.select-btn');
-
-
-//スタイリスト
-selectButtons.forEach(button => {
-  button.addEventListener('click', function() {
-    const stylistName = this.closest('.stylist-card').querySelector('h3').textContent;
-    alert(`${stylistName} を選びました！`);
-    // ここでフォームの入力フィールドに名前をセットする処理を追加できます
-  });
-});
-// スタイリストカードを取得
-const cards = document.querySelectorAll('.stylist-card');
-
-cards.forEach(card => {
-  card.addEventListener('click', () => {
-    // すべてのカードの選択を解除
-    cards.forEach(c => c.classList.remove('selected'));
-    // クリックされたカードを選択状態にする
-    card.classList.add('selected');
-    
-    // 選択されたスタイリストの名前を取得
-    const selectedStylist = card.dataset.stylist;
-    console.log('選択されたスタイリスト:', selectedStylist);
-
-    // 必要であれば選択内容を他の処理に送る
-    // 例: フォームデータに追加
-    document.querySelector('#selectedStylistInput').value = selectedStylist;
-  });
-});
-
-
-
-
-  // 月が変更された時に日付の選択肢を更新
-  const monthSelectors = ['month1', 'month2', 'month3'];
-  const daySelectors = ['day1', 'day2', 'day3'];
-
-
-
-
-document.getElementById('phoneNumber').addEventListener('input', function (e) {
-  const phoneInput = e.target.value;
-  const isValid = /^(\d{2,4}-?\d{2,4}-?\d{4})$/.test(phoneInput); // ハイフンあり・なし対応
-  if (!isValid) {
-    e.target.setCustomValidity('電話番号は正しい形式で入力してください（例: 090-1234-5678 または 09012345678）');
-  } else {
-    e.target.setCustomValidity('');
-  }
-});
-
- // 名前と電話番号の自動入力
- const nameInput = document.getElementById("name");
-  const phoneInput = document.getElementById("phoneNumber");
-
-  // 名前と電話番号の記憶
-  nameInput.value = localStorage.getItem("name") || '';
-  phoneInput.value = localStorage.getItem("phoneNumber") || '';
-
-  // 名前と電話番号を保存
-  nameInput.addEventListener('input', function() {
-    localStorage.setItem("name", nameInput.value);
-  });
-  phoneInput.addEventListener('input', function() {
-    localStorage.setItem("phoneNumber", phoneInput.value);
-  });
- // 送信ボタンがクリックされた時の処理
- document.getElementById("someButton").addEventListener("click", function () {
-  console.log("Button clicked");
-  event.preventDefault();  // デフォルトのフォーム送信を防止
-
-  // フォームのバリデーションチェック
-  const name = document.getElementById('name').value;
-  if (!name) {
-    alert('名前は必須です');
-    return;
-  }
-
-  const phone = document.getElementById('phoneNumber').value;
-  if (!phone) {
-    alert('電話番号は必須です');
-    return;
-  }
-
-// 予約情報をオブジェクトにまとめる
-const reservation = {
-  name: document.getElementById('name')?.value || '',
-  preferences: [
-    {
-      month: document.getElementById('month1')?.value || '',
-      day: document.getElementById('day1')?.value || '',
-      time: document.getElementById('time1')?.value || ''
-    },
-    {
-      month: document.getElementById('month2')?.value || '',
-      day: document.getElementById('day2')?.value || '',
-      time: document.getElementById('time2')?.value || ''
-    },
-    {
-      month: document.getElementById('month3')?.value || '',
-      day: document.getElementById('day3')?.value || '',
-      time: document.getElementById('time3')?.value || ''
+  
+    // スタイリスト選択
+    document.querySelectorAll('.stylist-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.stylist-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        document.querySelector('#selectedStylistInput').value = card.dataset.stylist;
+      });
+    });
+  
+     // 第2希望の追加
+  document.getElementById('addSecondChoice').addEventListener('click', function () {
+    const secondChoiceDiv = document.getElementById('secondChoice');
+    if (!secondChoiceDiv.innerHTML) {
+      secondChoiceDiv.innerHTML = `
+        <h2 class="title">第2希望</h2>
+        <div class="input-wrapper">
+          <label for="day2" class="input-label">日付:</label>
+          <select id="day2" name="day2" class="input-select" required></select>
+        </div>
+        <div class="input-wrapper">
+          <label for="time2" class="input-label">時間:</label>
+          <select id="time2" name="time2" class="input-select" required>
+            ${[...Array(10).keys()].map(i => `<option value="${9 + i}:00">${9 + i}:00</option>`).join('')}
+          </select>
+        </div>`;
+      populateDateOptions('day2');
+    } else {
+      secondChoiceDiv.innerHTML = '';
     }
-  ].filter(pref => pref.month && pref.day && pref.time), // 必須項目が揃っている場合のみフィルタ
-  menu: document.getElementById('menu').value,
-  staff: document.getElementById('selectedStylistInput')?.value || '',
-  phone: document.getElementById('phoneNumber')?.value || '',
-  comments: document.getElementById('comments')?.value || ''
-};
-
- // 送信メッセージの構築
-let message = `予約者名: ${reservation.name}\n`;
-
-// 第1希望〜第3希望を表示
-if (reservation.preferences.length > 0) {
-  reservation.preferences.forEach((pref, index) => {
-    if (pref.month && pref.day && pref.time) {
-// 曜日を計算して表示に追加
-const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
-const date = new Date(2024, pref.month - 1, pref.day);
-const weekday = weekdays[date.getDay()];
-
-// メッセージに曜日を追加して表示
-message += `第${index + 1}希望: ${pref.month}月${pref.day}日 (${weekday}) ${pref.time}時\n`;
-}});
-} else {
-  message += '第2希望はありません。\n';  // 第2希望がない場合のメッセージ
-}
-
-// メニューの表示
-message += `メニュー: ${reservation.menu}`;
-message += `\n`;
-
-
-// スタイリスト、電話番号、コメントの表示
-message += `担当スタイリスト: ${reservation.staff}\n電話番号: ${reservation.phone}\nコメント: ${reservation.comments}\n予約希望ありがとうございます！！\n確認いたしますのでお待ちください！！`;
-
-console.log(message);  // メッセージ内容をコンソールに出力して確認
-
-
-
-  // LINEメッセージ送信
-  liff.sendMessages([{
-    type: 'text',
-    text: message
-  }]).then(function () {
-    alert('予約希望が送信されました！\n確認いたしますのでしばらくお待ちください！');
-    liff.closeWindow();
-  }).catch(function (error) {
-    alert('エラーが発生しました: ' + error.message || error);
   });
-});
-
-
-</script>
+  
+   // 第3希望の追加
+  document.getElementById('addThirdChoice').addEventListener('click', function () {
+    const thirdChoiceDiv = document.getElementById('thirdChoice');
+    if (!thirdChoiceDiv.innerHTML) {
+      thirdChoiceDiv.innerHTML = `
+        <h2 class="title">第3希望</h2>
+        <div class="input-wrapper">
+          <label for="day3" class="input-label">日付:</label>
+          <select id="day3" name="day3" class="input-select" required></select>
+        </div>
+        <div class="input-wrapper">
+          <label for="time3" class="input-label">時間:</label>
+          <select id="time3" name="time3" class="input-select" required>
+            ${[...Array(10).keys()].map(i => `<option value="${9 + i}:00">${9 + i}:00</option>`).join('')}
+          </select>
+        </div>`;
+      populateDateOptions('day3');
+    } else {
+      thirdChoiceDiv.innerHTML = '';
+    }
+  });
+   // 初期化
+   window.onload = function() {
+    populateDateOptions('day1');
+  };
+    // 送信処理
+    document.getElementById('someButton').addEventListener('click', function (event) {
+      event.preventDefault();
+  
+      const reservation = {
+        name: document.getElementById('name')?.value || '',
+        preferences: ['month1', 'month2', 'month3'].map((monthId, i) => ({
+          month: document.getElementById(monthId)?.value || '',
+          day: document.getElementById(`day${i + 1}`)?.value || '',
+          time: document.getElementById(`time${i + 1}`)?.value || ''
+        })).filter(pref => pref.month && pref.day && pref.time),
+        menu: document.getElementById('menu').value,
+        staff: document.getElementById('selectedStylistInput')?.value || '',
+        phone: document.getElementById('phoneNumber')?.value || '',
+        comments: document.getElementById('comments')?.value || ''
+      };
+  
+      let message = `予約者名: ${reservation.name}\n`;
+      reservation.preferences.forEach((pref, index) => {
+        const date = new Date(2024, pref.month - 1, pref.day);
+        const weekday = ["日", "月", "火", "水", "木", "金", "土"][date.getDay()];
+        message += `第${index + 1}希望: ${pref.month}月${pref.day}日 (${weekday}) ${pref.time}\n`;
+      });
+  
+      message += `メニュー: ${reservation.menu}\n担当スタイリスト: ${reservation.staff}\n電話番号: ${reservation.phone}\nコメント: ${reservation.comments}`;
+  
+      liff.sendMessages([{ type: 'text', text: message }])
+        .then(() => {
+          alert('予約希望が送信されました！');
+          liff.closeWindow();
+        }).catch(error => {
+          alert('エラーが発生しました: ' + error.message);
+        });
+    });
+  
+    // ページロード時処理
+    document.addEventListener('DOMContentLoaded', () => {
+      populateDateOptions('day1');
+    });
+  </script>
+  
+  
 </body>
 </html>
