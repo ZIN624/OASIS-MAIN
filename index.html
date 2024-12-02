@@ -360,7 +360,45 @@
 
 
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
-
+  <script>
+    // liffモックを作成
+    const liffMock = {
+      init: (options) => {
+        console.log("LIFF initialized with options:", options);
+        return Promise.resolve();
+      },
+      getProfile: () => {
+        return Promise.resolve({
+          displayName: "テストユーザー",
+          userId: "U1234567890",
+        });
+      },
+      sendMessages: (messages) => {
+        console.log("メッセージ送信:", messages);
+        return Promise.resolve();
+      },
+      closeWindow: () => {
+        console.log("ウィンドウを閉じました。");
+      },
+    };
+    
+    // 本物のLIFF SDKが存在しない場合にモックを使用
+    const liff = window.liff || liffMock;
+    
+    // LIFF初期化
+    liff.init({ liffId: "test" })
+      .then(() => {
+        console.log("LIFFの初期化に成功しました");
+        return liff.getProfile();
+      })
+      .then(profile => {
+        console.log("プロフィール取得:", profile);
+        document.getElementById("userName").textContent = profile.displayName;
+      })
+      .catch(error => {
+        console.error("エラー:", error);
+      });
+    </script>
   <script>
 liff.init({
   liffId: '2006621786-8K7V4W3M'
@@ -653,7 +691,8 @@ document.getElementById("confirmReservation").addEventListener("click", function
   message += `メニュー: ${menu}\n担当スタイリスト: ${stylist}\n電話番号: ${phone}\nコメント: ${comments}`;
 
   // LINEメッセージ送信
-  liff.sendMessages([{ type: 'text', text: message }])
+  liff.sendMessages([
+  { type: 'text', text: 'テストメッセージ' }])
     .then(() => {
       alert('予約希望が送信されました！');
       closeModal();  // モーダルを閉じる
