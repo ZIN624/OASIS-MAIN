@@ -1,0 +1,216 @@
+    /* 基本的なスタイル */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f8f8f8;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      
+    }
+    h1 {
+      text-align: center;
+      color: #FFF;
+      margin-top: 20px;
+      background-color: #4CAF50;
+      padding: 10px 0;
+    }
+    .title {
+      font-size: 1.6em;
+      color: #4CAF50;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .date-container {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .input-wrapper {
+      margin: 10px;
+    }
+    .input-label {
+      font-size: 1.2em;
+      margin-bottom: 5px;
+      display: block;
+    }
+    .input-select,
+    .input-field,
+    .input-textarea {
+      font-size: 1em;
+      padding: 10px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      transition: border-color 0.3s ease;
+    }
+    .input-select:focus,
+    .input-field:focus,
+    .input-textarea:focus {
+      outline: none;
+      border-color: #4CAF50;
+      background-color: #fff;
+    }
+    button {
+      padding: 12px;
+      font-size: 1.5em;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      height: 100px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #other-input-container {
+      display: none;
+    }
+    #addSecondChoice, #addThirdChoice {
+  margin: 10px 0; /* 上下に10pxの余白を追加 */
+  height: 60px; /* ボタンの高さを少し小さく */
+  font-size: 1.5em; /* フォントサイズを少し小さく */
+}
+/* スタイリストカードコンテナを横並びに */
+#stylist-container {
+  display: flex;
+  gap: 20px; /* カード間のスペース */
+  justify-content: center; /* 横中央揃え */
+  flex-wrap: wrap; /* 画面幅が狭い場合に折り返し可能に */
+  margin: 20px 0;
+}
+
+/* 個々のカードのスタイル */
+.stylist-card {
+  width: 200px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  background-color: #fff;
+}
+
+.stylist-card:hover {
+  transform: translateY(-10px); /* ホバーで浮き上がるエフェクト */
+}
+
+/* スタイリスト画像のスタイル */
+.stylist-image img {
+  width: 100%;
+  height: auto;
+  border-bottom: 1px solid #ddd;
+}
+
+/* スタイリスト情報 */
+.stylist-info {
+  padding: 10px;
+}
+
+.stylist-info h3 {
+  margin: 10px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.stylist-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+/* 選択時のカードのスタイル */
+.stylist-card.selected {
+  border: 2px solid #4CAF50; /* 緑の枠線 */
+  box-shadow: 0 8px 10px rgba(0, 0, 0, 0.15);
+  background-color: #f9fff9; /* 少し緑がかった背景色 */
+}
+
+/* 通常カードのスタイル */
+.stylist-card {
+  cursor: pointer; /* カーソルをクリック可能に */
+  transition: all 0.3s ease;
+}
+
+/* 土日を赤く表示 */
+.red-day {
+  color: red;  /* LIFFのページ内では適用されます */
+}
+
+.hidden {
+  display: none;
+}
+
+/* 送信ボタンのスタイル */
+#submitReservation {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 32px;
+}
+
+#submitReservation:hover {
+  background-color: #4CAF50;
+}
+
+/* モーダル関連 */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  height: 80%;
+  overflow: auto;
+  font-size: 18px;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 30px;
+}
+
+.btn:hover {
+  background-color: #317534;
+}
+.reservationDetails{
+   font-size: 300px;
+}
