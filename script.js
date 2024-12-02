@@ -4,12 +4,7 @@ const liffMock = {
     console.log("LIFF initialized with options:", options);
     return Promise.resolve();
   },
-  getProfile: () => {
-    return Promise.resolve({
-      displayName: "テストユーザー",
-      userId: "U1234567890",
-    });
-  },
+ 
   sendMessages: (messages) => {
     console.log("メッセージ送信:", messages);
     return Promise.resolve();
@@ -22,19 +17,6 @@ const liffMock = {
 // 本物のLIFF SDKが存在しない場合にモックを使用
 const liff = window.liff || liffMock;
 
-// LIFF初期化
-liff.init({ liffId: "test" })
-  .then(() => {
-    console.log("LIFFの初期化に成功しました");
-    return liff.getProfile();
-  })
-  .then(profile => {
-    console.log("プロフィール取得:", profile);
-    document.getElementById("displayName").textContent = profile.displayName;
-  })
-  .catch(error => {
-    console.error("エラー:", error);
-  });
 
 liff.init({
   liffId: '2006621786-8K7V4W3M'
@@ -282,11 +264,14 @@ document.getElementById('submitReservation').addEventListener('click', function 
 // モーダルを閉じる関数を共通化
 function closeModal() {
   document.getElementById('modal').style.display = 'none';
+  // モーダルを閉じてもフォームの入力値を保持
+  document.getElementById('modal').classList.remove('hidden');
 }
-
 // キャンセルボタン
-document.getElementById('cancelReservation').addEventListener('click', closeModal);
-
+document.getElementById('cancelReservation').addEventListener('click', function(event) {
+  event.preventDefault(); // デフォルトの動作を防止
+  closeModal();
+}); 
 // モーダル外をクリックしたら閉じる
 window.addEventListener("click", function(event) {
   const modal = document.getElementById("modal");
@@ -294,7 +279,6 @@ window.addEventListener("click", function(event) {
     closeModal();
   }
 });
-
 // 予約を確定するボタン
 document.getElementById("confirmReservation").addEventListener("click", function() {
   const name = document.getElementById('name').value.trim();
@@ -316,29 +300,39 @@ document.getElementById("confirmReservation").addEventListener("click", function
   }
 
   // 予約詳細メッセージ作成
-  let message = `予約者名: ${name}\n`;
+  let message = `
+  予約希望メッセージ\n\n予約者名: ${name}\n`;
   preferences.forEach((pref, index) => {
     const date = new Date(pref.date); // 日付をDateオブジェクトに変換
     const weekday = ["日", "月", "火", "水", "木", "金", "土"][date.getDay()];
     message += `第${index + 1}希望: ${date.getMonth() + 1}月${date.getDate()}日 (${weekday}) ${pref.time}\n`;
   });
-  message += `メニュー: ${menu}\n担当スタイリスト: ${stylist}\n電話番号: ${phone}\nコメント: ${comments}`;
+  message += `メニュー: ${menu}\n担当スタイリスト: ${stylist}\n電話番号: ${phone}\nコメント: ${comments}
+  
+  ご記入ありがとうございました！
+  確認次第ご連絡いたしますのでお待ちください！`;
+
+// 送信するメッセージ内容をコンソールに表示
+console.log("送信内容:", message);
 
   // LINEメッセージ送信
-  liff.sendMessages([
-    { type: 'text', text: 'テストメッセージ' }
-  ])
-    .then(() => {
-      alert('予約希望が送信されました！');
-      closeModal();  // モーダルを閉じる
-      liff.closeWindow();  // LIFFウィンドウを閉じる
-    })
-    .catch(error => {
-      alert('エラーが発生しました: ' + error.message);
-    });
-});
-
-// ページロード時処理
-document.addEventListener('DOMContentLoaded', () => {
-  populateDateOptions('day1');
-});
+  liff.sendMessages([{
+    type: 'text',
+    text: message
+  }])
+  .then(() => {
+    console.log("メッセージ送信成功",message);
+    alert('予約希望が送信されました！');
+    closeModal();  // モーダルを閉じる
+    liff.closeWindow();  // LIFFウィンドウを閉じる
+  })
+  .catch(error => {
+    console.error('メッセージ送信エラー:', error);
+    alert('エラーが発生しました: ' + error.message);
+  });
+  
+  
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('DOMContentLoaded event fired');
+      populateDateOptions('day1');
+    });})
