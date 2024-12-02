@@ -1,32 +1,10 @@
-// liffモックを作成
-const liffMock = {
-  init: (options) => {
-    console.log("LIFF initialized with options:", options);
-    return Promise.resolve();
-  },
- 
-  sendMessages: (messages) => {
-    console.log("メッセージ送信:", messages);
-    return Promise.resolve();
-  },
-  closeWindow: () => {
-    console.log("ウィンドウを閉じました。");
-  },
-};
-
-// 本物のLIFF SDKが存在しない場合にモックを使用
-const liff = window.liff || liffMock;
-
-
-liff.init({
-  liffId: '2006621786-8K7V4W3M'
-}).then(() => {
-  console.log('LIFF initialized');
-  document.getElementById('reservationForm').classList.remove('hidden');
-}).catch((error) => {
-  console.error('LIFF initialization failed:', error);
-  alert('LIFF initialization failed. Please try again later.');
-});
+  liff.init({
+    liffId: '2006621786-8K7V4W3M' // LINE Developersから取得したLIFF ID
+  }).then(() => {
+    console.log('LIFF initialized');
+  }).catch((error) => {
+    console.error('LIFF initialization failed:', error);
+  });
 
 // 営業する特別な日（祝日など）
 const specialWorkingDays = [
@@ -279,6 +257,7 @@ window.addEventListener("click", function(event) {
     closeModal();
   }
 });
+
 // 予約を確定するボタン
 document.getElementById("confirmReservation").addEventListener("click", function() {
   const name = document.getElementById('name').value.trim();
