@@ -1,147 +1,224 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>予約フォーム</title>
-  <link rel="stylesheet" href="style.css">
-</head>
+    /* 基本的なスタイル */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f8f8f8;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      
+    }
+    h1 {
+      text-align: center;
+      color: #FFF;
+      margin-top: 20px;
+      background-color: #4CAF50;
+      padding: 10px 0;
+    }
+    .title {
+      font-size: 1.6em;
+      color: #4CAF50;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .date-container {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .input-wrapper {
+      margin: 10px;
+    }
+    .input-label {
+      font-size: 1.2em;
+      margin-bottom: 5px;
+      display: block;
+    }
+    .input-select,
+    .input-field,
+    .input-textarea {
+      font-size: 1em;
+      padding: 10px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      transition: border-color 0.3s ease;
+    }
+    .input-select:focus,
+    .input-field:focus,
+    .input-textarea:focus {
+      outline: none;
+      border-color: #4CAF50;
+      background-color: #fff;
+    }
+    button {
+      padding: 12px;
+      font-size: 1.5em;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      height: 100px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #other-input-container {
+      display: none;
+    }
+    #addSecondChoice, #addThirdChoice {
+  margin: 10px 0; /* 上下に10pxの余白を追加 */
+  height: 60px; /* ボタンの高さを少し小さく */
+  font-size: 1.5em; /* フォントサイズを少し小さく */
+}
+/* スタイリストカードコンテナを横並びに */
+#stylist-container {
+  display: flex;
+  overflow-x: auto; /* 横スクロール可能に */
+  overflow-y: hidden; /* 縦スクロールを防ぐ */
+  gap: 15px; /* カード間のスペース */
+  padding: 10px;
+  scroll-snap-type: x mandatory; /* スナップスクロール */
+  -webkit-overflow-scrolling: touch; /* スムーズなスクロール（iOS用） */
+  scrollbar-width: thin; /* スクロールバーを細く */
+  scrollbar-color: #888 #f1f1f1; /* スクロールバーの色 */
+  white-space: nowrap; /* カードを横に並べる */
+}
 
-<body>
-  
-  <script src="https://static.line-scdn.net/liff/2.1/sdk.js"></script>
-  <h1>OASIS<br>予約希望フォーム</h1>
+/* 個々のカードのスタイル */
+.stylist-card {
+  flex: 0 0 auto; /* サイズを固定 */
+  width: 100px; /* カードの幅を固定 */
+  min-width: 120px; /* 最小幅 */
+  scroll-snap-align: center; /* スクロールのスナップポイント */
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  padding: 15px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+.stylist-card:hover {
+  transform: translateY(-10px); /* ホバーで浮き上がるエフェクト */
+}
 
-  <form id="reservationForm">
-    <!-- 名前 -->
-    <h2 class="title">予約者名</h2>
-    <div class="input-wrapper">
-      <label for="name" class="input-label">予約者名:</label>
-      <input type="text" id="name" name="name" placeholder="オアシス太郎" class="input-field" required><br><br>
-    </div>
+/* スタイリスト画像のスタイル */
+.stylist-image img {
+  width: 100%;
+  height: auto;
+  border-bottom: 1px solid #ddd;
+}
 
-    <!-- 第1希望 -->
-    <h2 class="title">第1希望</h2>
-    <div class="date-container">
-      <div class="input-wrapper">
+/* スタイリスト情報 */
+.stylist-info {
+  padding: 10px;
+}
 
+.stylist-info h3 {
+  margin: 10px 0;
+  font-size: 18px;
+  color: #333;
+}
 
-      <div class="input-wrapper">
-        <label for="day1" class="input-label">日:</label>
-        <select id="day1" name="day1" class="input-select" required></select>
-      </div>
+.stylist-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+/* 選択時のカードのスタイル */
+.stylist-card.selected {
+  border: 10px solid #4CAF50; /* 緑の枠線 */
+  box-shadow: 0 8px 10px rgba(0, 0, 0, 0.15);
+  background-color: #f9fff9; /* 少し緑がかった背景色 */
+}
 
-      <div class="input-wrapper">
-        <label for="time1" class="input-label">時間:</label>
-        <select id="time1" name="time1" class="input-select" required>
-          <!-- 時間の選択肢 -->
-          <option value="9:00">9:00</option>
-          <option value="10:00">10:00</option>
-          <option value="11:00">11:00</option>
-          <option value="12:00">12:00</option>
-          <option value="13:00">13:00</option>
-          <option value="14:00">14:00</option>
-          <option value="15:00">15:00</option>
-          <option value="16:00">16:00</option>
-          <option value="17:00">17:00</option>
-          <option value="18:00">18:00</option>
-        </select>
-      </div>
-    </div>
+/* 通常カードのスタイル */
+.stylist-card {
+  cursor: pointer; /* カーソルをクリック可能に */
+  transition: all 0.3s ease;
+}
 
-    <!-- 希望2 / 希望3の追加ボタン -->
-    <button type="button" id="addSecondChoice">第2希望を追加</button>
-    <div id="secondChoice"></div>
-    
+/* 土日を赤く表示 */
+.red-day {
+  color: red;  /* LIFFのページ内では適用されます */
+}
 
-    
+.hidden {
+  display: none;
+}
 
-    <button type="button" id="addThirdChoice">第3希望を追加</button>
-    <div id="thirdChoice"></div>
+/* 送信ボタンのスタイル */
+#submitReservation {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 32px;
+}
 
-<!-- 備考 -->
-<h2 class="title">メニュー:</h2>
-<div class="input-wrapper">
-  <label for="menu" class="input-label">ご希望メニュー</label>
-  <textarea id="menu" name="menu" class="input-field" rows="4" placeholder="(例)カットとカラーとトリートメント"></textarea>
-</div>
+#submitReservation:hover {
+  background-color: #4CAF50;
+}
 
+/* モーダル関連 */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.4);
+}
 
-   
-<!--スタッフ-->
-<h2 class="title">担当スタイリスト:</h2>
-<div id="stylist-container">
-  <!-- 必ずフォームの中か適切な場所にこの要素を追加 -->
-<input type="hidden" id="selectedStylistInput" name="stylist">
-<div class="stylist-card" data-stylist="指名なし">
-  <div class="stylist-image">
-    <img src="LINE_ALBUM_スタッフ写真_241130_1.jpg" alt="指名なし">
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  height: 80%;
+  overflow: auto;
+  font-size: 18px;
+}
 
-  </div>
-  <div class="stylist-info">
-    <h3>指名なし</h3>
-  
-  </div>
-</div>
-<div class="stylist-card" data-stylist="岡崎富之">
-    <div class="stylist-image">
-      <img src="LINE_ALBUM_スタッフ写真_241130_3.jpg" alt="岡崎富之">
-    </div>
-    <div class="stylist-info">
-      <h3>岡崎富之</h3>
-      <p>オーナー</p>
-    </div>
-  </div>
-  <div class="stylist-card" data-stylist="岡崎寿美子">
-    <div class="stylist-image">
-      <img src="LINE_ALBUM_スタッフ写真_241130_2.jpg" alt="岡崎寿美子">
-    </div>
-    <div class="stylist-info">
-      <h3>岡崎寿美子</h3>
-      <p>店長</p>
-    </div>
-  </div>
-</div>
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
 
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
 
+.btn {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 30px;
+}
 
-
-
-    <!-- 電話番号 -->
-    <h2 class="title">電話番号:</h2>
-    <div class="input-wrapper">
-      <label for="phoneNumber" class="input-label">電話番号:</label>
-      <input type="text" id="phoneNumber" class="input-field" placeholder="例: 090-1234-5678 または 09012345678" required>
-    </div>
-
-    <!-- 備考 -->
-    <h2 class="title">備考:</h2>
-    <div class="input-wrapper">
-      <label for="comments" class="input-label">ご要望・コメント:</label>
-      <textarea id="comments" name="comments" class="input-field" rows="4" placeholder="ご要望があればご記入ください"></textarea>
-    </div>
-
-    
-
-<!-- 予約確認モーダル -->
-<div id="modal" class="modal">
-  <div class="modal-content">
-    <span class="close">&times;</span>
-    <h2>予約内容確認</h2>
-    <pre id="reservationDetails"></pre>
-    <button id="confirmReservation" class="btn">予約希望を送る</button>
-    <button id="cancelReservation" class="btn">修正する</button>
-  </div>
-</div>
-<!-- フォーム送信ボタン -->
-<button id="submitReservation" class="btn">送信</button>
-  </form>
-
- 
-
-
-
-
-  <script src="script.js"></script>
-</body>
-</html>
+.btn:hover {
+  background-color: #317534;
+}
+.reservationDetails{
+   font-size: 300px;
+}
