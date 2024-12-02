@@ -272,11 +272,29 @@ document.getElementById("confirmReservation").addEventListener("click", function
     time: document.getElementById(`time${num}`)?.value || '',
   })).filter(pref => pref.date && pref.time);
 
-  // 入力値の確認（名前、電話番号、メニュー）
-  if (!name || !phone || !menu) {
-    alert("名前、電話番号、メニューを入力してください。");
+  
+  
+  if (!name) {
+    // 名前が空の場合
+    setNameError('名前を入力してください');
     return;
   }
+  if (!phone) {
+    // 電話番号が空の場合
+    setNameError('電話番号を入力してください');
+    return;
+  }
+  if (!menu) {
+    // メニューが空の場合
+    setNameError('ご希望のメニューを入力してください');
+    return;
+  }
+  if (!selectedStylistInput) {
+    // 担当スタイリスト
+    setNameError('担当スタイリストをお選びください');
+    return;
+  }
+  
 
   // 予約詳細メッセージ作成
   let message = `
