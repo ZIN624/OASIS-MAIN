@@ -79,32 +79,25 @@
 }
 /* スタイリストカードコンテナを横並びに */
 #stylist-container {
-  display: flex;
-  overflow-x: auto; /* 横スクロール可能に */
-  overflow-y: hidden; /* 縦スクロールを防ぐ */
-  gap: 15px; /* カード間のスペース */
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 均等な3列 */
+  gap: 10px; /* カード間のスペース */
   padding: 10px;
-  scroll-snap-type: x mandatory; /* スナップスクロール */
-  -webkit-overflow-scrolling: touch; /* スムーズなスクロール（iOS用） */
-  scrollbar-width: thin; /* スクロールバーを細く */
-  scrollbar-color: #888 #f1f1f1; /* スクロールバーの色 */
-  white-space: nowrap; /* カードを横に並べる */
+  width: 100%; /* 幅いっぱいに */
+  height: 100%;
 }
 
 /* 個々のカードのスタイル */
 .stylist-card {
-  flex: 0 0 auto; /* サイズを固定 */
-  width: 100px; /* カードの幅を固定 */
-  min-width: 120px; /* 最小幅 */
-  scroll-snap-align: center; /* スクロールのスナップポイント */
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center;
   border: 2px solid #ddd;
   border-radius: 10px;
   padding: 15px;
-  text-align: center;
-  transition: all 0.3s ease;
+  aspect-ratio: 1 / 1.2; /* カードの縦横比を少し調整 */
+  overflow: hidden;
 }
 .stylist-card:hover {
   transform: translateY(-10px); /* ホバーで浮き上がるエフェクト */
