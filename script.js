@@ -295,7 +295,7 @@ document.getElementById("confirmReservation").addEventListener("click", function
   // LINEメッセージ送信
   liff.sendMessages([{
     type: 'text',
-    text: "ooaoaoaoa"
+    text: 'message',
   }])
     .then(() => {
       console.log("メッセージ送信成功", message);
