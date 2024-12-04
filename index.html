@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>予約フォーム</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
 </head>
 
 <body>
@@ -129,10 +130,11 @@
     <span class="close">&times;</span>
     <h2>予約内容確認</h2>
     <pre id="reservationDetails"></pre>
-    <button id="confirmReservation" class="btn">予約希望を送る</button>
-    <button id="cancelReservation" class="btn">修正する</button>
+    <button id="confirmReservation" class="btn">予約希望を送信</button>
+    <button id="cancelReservation" class="btn">内容を修正する</button>
   </div>
 </div>
+
 <!-- フォーム送信ボタン -->
 <button id="submitReservation" class="btn">送信</button>
   </form>
@@ -141,7 +143,7 @@
 
 
 
-  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
+ 
   <script src="script.js"></script>
 </body>
 </html>
