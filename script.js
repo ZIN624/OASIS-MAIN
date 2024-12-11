@@ -14,10 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 営業する特別な日（祝日など）
 const specialWorkingDays = [
-  '2024-12-23'  // 例: 12月23日（月曜日）を営業日として追加
+  ''  // 例: 12月23日（月曜日）を営業日として追加
 ];
 
-// 休暇日を追加 (通常の休日)
+// 休業日を追加 (通常の休日)
 const holidays = [
   '2024-12-25',  // 休業日
   '2024-01-01'   // 休業日
@@ -175,8 +175,7 @@ window.onload = function() {
 };
 
 
-
-// データを共有するためのグローバル変数
+// 予約データを収集する関数
 let reservationData = {};
 
 // 送信処理スタート
@@ -196,7 +195,7 @@ document.getElementById('submitReservation').addEventListener('click', function 
     preferences: ['1', '2', '3'].map(num => ({
       date: document.getElementById(`day${num}`)?.value || '',
       time: document.getElementById(`time${num}`)?.value || ''
-    })).filter(pref => pref.date && pref.time),
+    })).filter(pref => pref.date && pref.time),  // フィルタリング
     comments: document.getElementById('comments')?.value.trim()
   };
 
@@ -251,17 +250,25 @@ document.getElementById("confirmReservation").addEventListener("click", function
   console.log(message);
 
   // LINEメッセージ送信
-  liff.sendMessages([{
-    type: 'text',
-    text: message
-  }]).then(function () {
-    alert('予約希望が送信されました！\n確認いたしますのでしばらくお待ちください！');
-
-    console.log('Attempting to close LIFF window. Uncomment this line for production.');
-    // liff.closeWindow(); // Uncomment this for production use.
-  }).catch(function (error) {
-    console.error('送信エラー:', error);
-    alert('送信中にエラーが発生しました。ネットワーク接続を確認してください。');
+  liff.init({ liffId: '2006621786-8K7V4W3M' })
+  .then(() => {
+    console.log('LIFF initialized successfully');
+    liff.sendMessages([{
+      type: 'text',
+      text: message
+    }])
+    .then(() => {
+      alert('予約希望が送信されました！');
+      console.log('Message sent successfully.');
+    })
+    .catch(err => {
+      console.error('LIFF初期化に失敗しました:', err);
+      alert('LIFF初期化に失敗しました。');
+    });
+  })
+  .catch(err => {
+    console.error('LIFF初期化に失敗しました:', err);
+    alert('LIFF初期化に失敗しました。');
   });
 });
 
@@ -273,7 +280,7 @@ function validateInputs() {
     return false;
   }
   const phone = document.getElementById('phoneNumber')?.value.trim();
-  if (!phone.match(/^0\d{1,4}-?\d{1,4}-?\d{4}$/)) {
+  if (!phone.match(/^0\d{1,4}-?(\d{1,4}){1,2}-?\d{4}$/)) {
     alert('電話番号は正しい形式で入力してください。');
     return false;
   }
