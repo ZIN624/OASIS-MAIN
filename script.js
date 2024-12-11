@@ -250,9 +250,7 @@ document.getElementById("confirmReservation").addEventListener("click", function
   console.log(message);
 
   // LINEメッセージ送信
-  liff.init({ liffId: '2006621786-8K7V4W3M' })
-  .then(() => {
-    console.log('LIFF initialized successfully');
+
     liff.sendMessages([{
       type: 'text',
       text: message
@@ -266,11 +264,9 @@ document.getElementById("confirmReservation").addEventListener("click", function
       alert('LIFF初期化に失敗しました。');
     });
   })
-  .catch(err => {
-    console.error('LIFF初期化に失敗しました:', err);
-    alert('LIFF初期化に失敗しました。');
-  });
-});
+
+
+
 
 // 入力チェック関数
 function validateInputs() {
