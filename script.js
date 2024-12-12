@@ -361,6 +361,9 @@ document.getElementById('confirmReservation').addEventListener('click', function
 
   if (reservationData.comments) message += `備考: ${reservationData.comments}\n`;
 
+  // 最後に追加するメッセージ（感謝と確認のメッセージ）
+  message += `\nご記入いただきありがとうございます！\nただいま確認いたしますのでお待ちください！🙏⏳`;
+
   console.log('送信するメッセージ:', message);  // 送信前にメッセージを確認
 
   // メッセージをLINEに送信
