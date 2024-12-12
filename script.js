@@ -259,7 +259,7 @@ document.getElementById('submitReservation').addEventListener('click', function 
  }
 
  if (!menu) {
-   alert('メニューを選択してください');
+   alert('ご希望のメニューを記入してください');
    return;
  }
 
