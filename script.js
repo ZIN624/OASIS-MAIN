@@ -123,7 +123,7 @@ function validateInputs() {
   // スタイリスト選択のバリデーション
   const selectedStylistInput = document.getElementById('selectedStylistInput');
   const stylist = selectedStylistInput ? selectedStylistInput.value.trim() : '';
-  if (!stylist || stylist === '指名なし') {
+  if (!stylist) {
     alert('担当スタイリストを選択してください。');
     return false;
   }
@@ -222,7 +222,7 @@ let reservationData = {};
 // 送信処理スタート
 document.getElementById('submitReservation').addEventListener('click', function (event) {
   event.preventDefault(); // デフォルトの送信を防止
-  console.log("submitReservation押されたよお");
+  console.log("submitReservation送信ボタンん押されたよお");
 
   // 入力チェック（共通化）
   if (!validateInputs()) return;
@@ -271,7 +271,7 @@ window.addEventListener("click", function(event) {
 // 予約を確定するボタン
 document.getElementById("confirmReservation").addEventListener("click", function() {
   // 入力チェックを再度実行
-  if (!validateInputs()) return;
+  //if (!validateInputs()) return;
 
   console.log('ConfirmReservation押されたよお');
 
@@ -284,29 +284,33 @@ document.getElementById("confirmReservation").addEventListener("click", function
   });
   message += `メニュー: ${reservationData.menu}\n担当スタイリスト: ${reservationData.stylist}\n電話番号: ${reservationData.phone}\nコメント: ${reservationData.comments}`;
 
-  console.log('Constructed message to be sent via LINE:');
-  console.log(message);
+  console.log('送信データ:', {
+    message: message,
+    isLoggedIn: liff.isLoggedIn(),
+    liffId: liff.getContext().liffId
+  });
 
-  // LINE送信の前にログインチェック
   if (!liff.isLoggedIn()) {
-    liff.login();
+    liff.login({ redirectUri: window.location.href });
     return;
   }
 
-  // LINEメッセージ送信
   liff.sendMessages([{
     type: 'text',
     text: message,
   }])
   .then(() => {
     alert('予約希望が送信されました！');
-    console.log('Message sent successfully.');
-    // モーダルを閉じる
-    closeModal();
     liff.closeWindow();
   })
   .catch((err) => {
     console.error('メッセージ送信エラー:', err);
-    alert('メッセージ送信に失敗しました。もう一度お試しください。');
+    console.error('エラー詳細:', JSON.stringify(err, null, 2));
+    console.error('エラーコード:', err.code);
+    console.error('エラーメッセージ:', err.message);
+    
+    alert(`メッセージ送信に失敗しました。
+    詳細: ${err.message}
+    もう一度お試しください。`);
   });
 });
