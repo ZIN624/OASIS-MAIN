@@ -318,20 +318,13 @@ document.getElementById("confirmReservation").addEventListener("click", function
     return;
   }
 
-  // メッセージ送信処理
-  if (!liff.isLoggedIn()) {
-    liff.login({
-        redirectUri: window.location.href // 現在のURLにリダイレクト
-    });
-    return; // ログイン後にリダイレクトするため、以降の処理を中断
-}
 
 
   // メッセージ送信処理
   try {
     liff.sendMessages([{
-      type: 'text',
-      text: message,
+      type: "text",
+      text: "Hello WOrld",
     }])
     .then(() => {
       console.log('メッセージ送信成功');
