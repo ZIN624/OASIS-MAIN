@@ -327,7 +327,7 @@ document.getElementById("confirmReservation").addEventListener("click", function
   try {
     liff.sendMessages([{
       type: 'text',
-      text: message,
+      text: message
     }])
     .then(() => {
       console.log('メッセージ送信成功');
