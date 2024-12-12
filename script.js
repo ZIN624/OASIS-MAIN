@@ -1,5 +1,5 @@
-// LIFF初期化（DOMContentLoadedイベント内で呼び出す）
-document.addEventListener('DOMContentLoaded', () => {
+
+
   liff.init({
     liffId: '2006621786-8K7V4W3M'
   }).then(() => {
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
           '2. LINEアプリ内で開いているか\n' +
           '3. LIFF IDが正しいか');
   });
-});
+
 
 // 営業する特別な日（祝日など）
 const specialWorkingDays = [
@@ -114,11 +114,14 @@ function populateDateOptions(selectId) {
 // 入力チェック関数
 // スタイリスト選択のバリデーションを修正
 function validateInputs() {
-  const username = document.getElementById('username')?.value.trim();
-  if (!username) {
+const username = document.getElementById('username')?.value.trim();
+localStorage.setItem("username", username); // 入力内容を保存
+
+if (!username) {
     alert('名前を入力してください。');
     return false;
-  }
+}
+
   
   const phone = document.getElementById('phoneNumber')?.value.trim();
   if (!phone.match(/^0\d{1,4}-?(\d{1,4}){1,2}-?\d{4}$/)) {
@@ -315,19 +318,20 @@ document.getElementById("confirmReservation").addEventListener("click", function
     return;
   }
 
-  // ログイン状態の確認
+  // メッセージ送信処理
   if (!liff.isLoggedIn()) {
     liff.login({
-      redirectUri: window.location.href // 現在のページに戻る
+        redirectUri: window.location.href // 現在のURLにリダイレクト
     });
-    return;
-  }
+    return; // ログイン後にリダイレクトするため、以降の処理を中断
+}
+
 
   // メッセージ送信処理
   try {
     liff.sendMessages([{
       type: 'text',
-      text: message
+      text: message,
     }])
     .then(() => {
       console.log('メッセージ送信成功');
