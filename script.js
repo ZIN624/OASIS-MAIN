@@ -123,7 +123,7 @@ if (!furigana) {
   return false;
 }
   // フリガナのバリデーション (ひらがなまたはカタカナのみ許容)
-  const furiganaPattern = /^[ぁ-んァ-ンー]*$/;
+  const furiganaPattern = /^[ぁ-んァ-ンー\s]+$/;
   if (!furiganaPattern.test(furigana)) {
     alert('フリガナは「ひらがな」と「カタカナ」のみで入力してください。');
     return false;
