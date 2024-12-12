@@ -355,7 +355,7 @@ document.getElementById('confirmReservation').addEventListener('click', function
 
   if (Array.isArray(reservationData.preferences) && reservationData.preferences.length > 0) {
     message += `希望日時:\n${reservationData.preferences.map((pref, index) => {
-      return `${index + 1}希望: ${pref.date} ${pref.time}`;
+      return `第${index + 1}希望: ${pref.date} ${pref.time}`;
     }).join('\n')}`;
   }
 
