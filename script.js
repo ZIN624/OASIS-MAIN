@@ -117,6 +117,23 @@ if (!username) {
   return false;
 }
 
+const furigana = document.getElementById('furigana')?.value.trim();
+if (!furigana) {
+  alert('フリガナを入力してください。');
+  return false;
+}
+  // フリガナのバリデーション (ひらがなまたはカタカナのみ許容)
+  const furiganaPattern = /^[ぁ-んァ-ンー]*$/;
+  if (!furiganaPattern.test(furigana)) {
+    alert('フリガナは「ひらがな」と「カタカナ」のみで入力してください。');
+    return false;
+  }
+
+const gender = document.querySelector('input[name="gender"]:checked')?.value;
+if (!gender) {
+  alert('性別を選択してください。');
+  return false;
+}
 
 const phone = document.getElementById('phoneNumber')?.value.trim();
 if (!phone.match(/^0\d{1,4}-?(\d{1,4}){1,2}-?\d{4}$/)) {
@@ -139,6 +156,7 @@ if (!stylist) {
   return false;
 }
 
+
 return true;
 }
 
@@ -146,11 +164,21 @@ return true;
 // 名前と電話番号の自動入力
 const nameInput = document.getElementById("username");
 const phoneInput = document.getElementById("phoneNumber");
+const furiganaInput = document.getElementById("furigana");
+const genderInputs = document.getElementsByName("gender");
 
 // 名前と電話番号の記憶
 nameInput.value = localStorage.getItem("username") || '';
 phoneInput.value = localStorage.getItem("phoneNumber") || '';
-
+furiganaInput.value = localStorage.getItem("furigana") || '';
+const savedGender = localStorage.getItem("gender");
+if (savedGender) {
+  genderInputs.forEach(input => {
+    if (input.value === savedGender) {
+      input.checked = true;
+    }
+  });
+}
 // 名前と電話番号を保存
 nameInput.addEventListener('input', function() {
 localStorage.setItem("username", nameInput.value);
@@ -158,7 +186,16 @@ localStorage.setItem("username", nameInput.value);
 phoneInput.addEventListener('input', function() {
 localStorage.setItem("phoneNumber", phoneInput.value);
 });
-
+furiganaInput.addEventListener('input', function() {
+  localStorage.setItem("furigana", furiganaInput.value);
+});
+genderInputs.forEach(input => {
+  input.addEventListener('change', function() {
+    if (input.checked) {
+      localStorage.setItem("gender", input.value);
+    }
+  });
+});
 // スタイリスト選択
 document.addEventListener('DOMContentLoaded', () => {
 document.querySelectorAll('.stylist-card').forEach(card => {
@@ -225,14 +262,19 @@ populateDateOptions('day1');
 
 // 予約データを収集する関数
 let reservationData = {
-  username: '',
-  phone: '',
-  menu: '',
-  stylist: '',
-  preferences: [], // ここで空の配列で初期化
-  comments: ''
+  username: document.getElementById('username')?.value.trim(),
+  phone: document.getElementById('phoneNumber')?.value.trim(),
+  menu: document.getElementById('menu')?.value.trim(),
+  stylist: document.getElementById('selectedStylistInput')?.value.trim(),
+  furigana: document.getElementById('furigana')?.value.trim(),
+  gender: document.querySelector('input[name="gender"]:checked')?.value,
+  preferences: ['1', '2', '3'].map(num => ({
+    date: document.getElementById(`day${num}`)?.value || '',
+    time: document.getElementById(`time${num}`)?.value || ''
+  })).filter(pref => pref.date && pref.time),
+  comments: document.getElementById('comments')?.value.trim(),
+  agree: document.getElementById('agreeCheckbox')?.checked || false
 };
-
 // 予約データの収集と表示
 document.getElementById('submitReservation').addEventListener('click', function (event) {
   event.preventDefault();
@@ -244,19 +286,26 @@ document.getElementById('submitReservation').addEventListener('click', function 
 
  // 1. 必須項目（名前、電話番号、メニュー、スタイリスト）をチェック
  const username = document.getElementById('username').value.trim();
+ const furigana = document.getElementById('furigana')?.value.trim();
  const phone = document.getElementById('phoneNumber').value.trim();
  const menu = document.getElementById('menu').value.trim();
  const stylist = document.getElementById('selectedStylistInput').value.trim();
+ const gender = document.querySelector('input[name="gender"]:checked')?.value;
  
  if (!username) {
    alert('名前を入力してください');
    return;
  }
+ if (!furigana) {
+  alert('フリガナをご記入ください');
+  return;
+}
 
- if (!phone) {
-   alert('電話番号を入力してください');
-   return;
- }
+if (!gender) {
+  alert('性別を選択してください');
+  return;
+}
+
 
  if (!menu) {
    alert('ご希望のメニューを記入してください');
@@ -267,13 +316,19 @@ document.getElementById('submitReservation').addEventListener('click', function 
    alert('スタイリストを選択してください');
    return;
  }
+ if (!phone) {
+  alert('電話番号を入力してください');
+  return;
+}
+
   // 予約データの収集
   reservationData = {
     username: document.getElementById('username')?.value.trim(),
     phone: document.getElementById('phoneNumber')?.value.trim(),
     menu: document.getElementById('menu')?.value.trim(),
     stylist: document.getElementById('selectedStylistInput')?.value.trim(),
-    
+    furigana: document.getElementById('furigana')?.value.trim(),
+    gender: document.querySelector('input[name="gender"]:checked')?.value || '',
     preferences: (['1', '2', '3'].map(num => {
       const date = document.getElementById(`day${num}`)?.value || '';
       const time = document.getElementById(`time${num}`)?.value || '';
@@ -281,7 +336,7 @@ document.getElementById('submitReservation').addEventListener('click', function 
     })).filter(pref => pref.date && pref.time),  // 日付と時間があるもののみフィルタリング
 
     comments: document.getElementById('comments')?.value.trim()
-  };
+  }
 
   console.log('収集した予約データ:', reservationData);  // 再度確認
 
@@ -294,15 +349,16 @@ document.getElementById('submitReservation').addEventListener('click', function 
 
   // 確認内容を整形
   const detailsHTML = `
-    <p><strong>予約者名<p></strong> ${reservationData.username}</p>
-    <p><strong>電話番号<p></strong> ${reservationData.phone || '未入力'}</p>
-    <p><strong>ご希望メニュー<p></strong> ${reservationData.menu || '未入力'}</p>
-    <p><strong>担当スタイリスト<p></strong> ${reservationData.stylist || '未選択'}</p>
-    ${reservationData.preferences.map((pref, index) => `
-      <p><strong>第${index + 1}希望<p></strong> ${pref.date} ${pref.time}</p>
-    `).join('')}
-    <p><strong>備考<p></strong> ${reservationData.comments || "なし"}</p>
-  `;
+  <p><strong>予約者名<p></strong> ${reservationData.username}</p>
+  <p><strong>フリガナ<p></strong> ${reservationData.furigana || '未入力'}</p>
+  <p><strong>性別<p></strong> ${reservationData.gender || '未選択'}</p>
+  <p><strong>電話番号<p></strong> ${reservationData.phone || '未入力'}</p>
+  <p><strong>ご希望メニュー<p></strong> ${reservationData.menu || '未入力'}</p>
+  ${reservationData.preferences.map((pref, index) => `
+    <p><strong>第${index + 1}希望<p></strong> ${pref.date} ${pref.time}</p>
+  `).join('')}
+  <p><strong>備考<p></strong> ${reservationData.comments || "なし"}</p>
+`;
 
   // 確認エリアにデータを設定
   const summaryDetails = document.getElementById('summaryDetails');
@@ -343,12 +399,17 @@ document.getElementById('editReservation').addEventListener('click', function ()
 
 // 確定ボタン
 document.getElementById('confirmReservation').addEventListener('click', function () {
-  console.log('送信前の予約データ:', reservationData);  // ここでデータが正しいか確認
-  
-  let message = 'ご予約希望メッセージ:\n';
+  const agreeChecked = document.getElementById('agreeCheckbox').checked;
+  if (!agreeChecked) {
+    alert('同意事項に同意してください');
+    return;
+  }
+  let message = 'ご予約希望メッセージ\n';
 
   // 空でないデータのみメッセージに追加
   if (reservationData.username) message += `\n予約者名: ${reservationData.username}様\n`;
+  if (reservationData.furigana) message += `フリガナ: ${reservationData.furigana}様\n`;
+if (reservationData.gender) message += `性別: ${reservationData.gender}\n`;
   if (reservationData.phone) message += `電話番号: ${reservationData.phone}\n`;
   if (reservationData.menu) message += `メニュー: ${reservationData.menu}\n`;
   if (reservationData.stylist) message += `スタイリスト: ${reservationData.stylist}\n`;
