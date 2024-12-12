@@ -291,67 +291,84 @@ document.getElementById("confirmReservation").addEventListener("click", function
 
   console.log('ConfirmReservation押されたよお');
 
-  // reservationDataを利用してメッセージ作成
-  let message = `予約希望メッセージ\n\n予約者名: ${reservationData.username}\n`;
-  reservationData.preferences.forEach((pref, index) => {
-    const date = new Date(pref.date);
-    const weekday = ["日", "月", "火", "水", "木", "金", "土"][date.getDay()];
-    message += `第${index + 1}希望: ${date.getMonth() + 1}月${date.getDate()}日 (${weekday}) ${pref.time}\n`;
-  });
-  message += `メニュー: ${reservationData.menu}\n担当スタイリスト: ${reservationData.stylist}\n電話番号: ${reservationData.phone}\nコメント: ${reservationData.comments}`;
-
-  console.log('送信データ:', {
-    message: message,
-    isLoggedIn: liff.isLoggedIn(),
-    liffId: liff.getContext().liffId
-  });
-
-  // LIFF初期化と送信の前に追加チェック
-  if (!liff.isInitialized()) {
-    alert('LINEフレームワークが初期化されていません。再読み込みしてください。');
-    return;
-  }
-
-  // クライアント内かどうかを確認
-  if (!liff.isInClient()) {
-    alert('LINEアプリ内で実行してください。');
-    return;
-  }
-
-
-
-  // メッセージ送信処理
-  try {
-    liff.sendMessages([{
-      type: "text",
-      text: "Hello WOrld",
-    }])
-    .then(() => {
-      console.log('メッセージ送信成功');
-      alert('予約希望が送信されました！');
-        // 即座に閉じるのを遅らせる
-    setTimeout(() => {
-      liff.closeWindow();
-    }, 3000); // 3秒後に閉じる
-    })
-    .catch((err) => {
-      console.error('メッセージ送信エラー:', err);
-      console.error('エラー詳細:', JSON.stringify(err, null, 2));
-      
-      // より詳細なエラーハンドリング
-      let errorMessage = 'メッセージ送信に失敗しました。';
-      if (err.message) {
-        errorMessage += `\nエラー: ${err.message}`;
-      }
-      errorMessage += '\n以下を確認してください：' +
-                      '\n1. インターネット接続' +
-                      '\n2. LINEアプリ内で開いているか' +
-                      '\n3. アプリの権限設定';
-      
-      alert(errorMessage);
-    });
-  } catch (error) {
-    console.error('送信処理中の予期せぬエラー:', error);
-    alert('送信処理中に予期せぬエラーが発生しました。');
-  }
-});
+   // フォームのバリデーションチェック
+   const name = document.getElementById('name').value;
+   if (!name) {
+     alert('名前は必須です');
+     return;
+   }
+ 
+   const phone = document.getElementById('phoneNumber').value;
+   if (!phone) {
+     alert('電話番号は必須です');
+     return;
+   }
+ 
+ // 予約情報をオブジェクトにまとめる
+ const reservation = {
+   name: document.getElementById('name')?.value || '',
+   preferences: [
+     {
+       month: document.getElementById('month1')?.value || '',
+       day: document.getElementById('day1')?.value || '',
+       time: document.getElementById('time1')?.value || ''
+     },
+     {
+       month: document.getElementById('month2')?.value || '',
+       day: document.getElementById('day2')?.value || '',
+       time: document.getElementById('time2')?.value || ''
+     },
+     {
+       month: document.getElementById('month3')?.value || '',
+       day: document.getElementById('day3')?.value || '',
+       time: document.getElementById('time3')?.value || ''
+     }
+   ].filter(pref => pref.month && pref.day && pref.time), // 必須項目が揃っている場合のみフィルタ
+   menu: document.getElementById('menu').value,
+   staff: document.getElementById('staff')?.value || '',
+   phone: document.getElementById('phoneNumber')?.value || '',
+   comments: document.getElementById('comments')?.value || ''
+ };
+ 
+  // 送信メッセージの構築
+ let message = `予約者名: ${reservation.name}\n`;
+ 
+ // 第1希望〜第3希望を表示
+ if (reservation.preferences.length > 0) {
+   reservation.preferences.forEach((pref, index) => {
+     if (pref.month && pref.day && pref.time) {
+ // 曜日を計算して表示に追加
+ const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+ const date = new Date(2024, pref.month - 1, pref.day);
+ const weekday = weekdays[date.getDay()];
+ 
+ // メッセージに曜日を追加して表示
+ message += `第${index + 1}希望: ${pref.month}月${pref.day}日 (${weekday}) ${pref.time}時\n`;
+ }});
+ } else {
+   message += '第2希望はありません。\n';  // 第2希望がない場合のメッセージ
+ }
+ 
+ // メニューの表示
+ message += `メニュー: ${reservation.menu}`;
+ message += `\n`;
+ 
+ 
+ // スタイリスト、電話番号、コメントの表示
+ message += `担当スタイリスト: ${reservation.staff}\n電話番号: ${reservation.phone}\nコメント: ${reservation.comments}`;
+ 
+ console.log(message);  // メッセージ内容をコンソールに出力して確認
+ 
+ 
+ 
+   // LINEメッセージ送信
+   liff.sendMessages([{
+     type: 'text',
+     text: message
+   }]).then(function () {
+     alert('予約希望が送信されました！\n確認いたしますのでしばらくお待ちください！');
+     liff.closeWindow();
+   }).catch(function (error) {
+     alert('エラーが発生しました: ' + error.message || error);
+   });
+ });
