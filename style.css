@@ -219,25 +219,27 @@ background-color: #317534;
 .reservationDetails{
 font-size: 300px;
 }
-/* 確認エリアのスタイル調整 */
+/* 確認エリアのスタイル */
 #reservationSummary {
-  padding: 15px;
-  font-size: 24px; /* フォントサイズをスマホ用に小さく */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* 垂直中央 */
+  align-items: center; /* 水平中央 */
+  margin: 0 auto;
+  padding: 20px;
   background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 500px; /* 最大幅を設定 */
-  margin: 0 auto; /* センタリング */
-  box-sizing: border-box;
+  border-radius: 10px;
+  width: 80%; /* 必要に応じて調整 */
+  height: auto; /* 必要に応じて調整 */
 }
 
-/* 確認内容を表示する部分 */
-#summaryDetails p {
-  margin: 0% 0; /* 行間を狭くする */
-  font-size: auto; /* スマホ画面に合わせた文字サイズ */
-  line-height: 0; /* 行間の調整 */
+#reservationSummary p {
+  margin-bottom: 10px;
+  font-size: 2em;
+  line-height: 1.5em; /* 行間を調整 */
+}
+#reservationSummary h2 {
+  text-align: center;
 }
 
 #summaryDetails strong {
