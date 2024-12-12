@@ -239,7 +239,34 @@ document.getElementById('submitReservation').addEventListener('click', function 
 
   console.log('送信ボタンがクリックされました');
   console.log('予約データ:', reservationData);  // reservationDataをコンソールに表示
+ // 入力チェック
+ if (!validateInputs()) return;  // バリデーション関数でエラーがあれば処理を中止
 
+ // 1. 必須項目（名前、電話番号、メニュー、スタイリスト）をチェック
+ const username = document.getElementById('username').value.trim();
+ const phone = document.getElementById('phoneNumber').value.trim();
+ const menu = document.getElementById('menu').value.trim();
+ const stylist = document.getElementById('selectedStylistInput').value.trim();
+ 
+ if (!username) {
+   alert('名前を入力してください');
+   return;
+ }
+
+ if (!phone) {
+   alert('電話番号を入力してください');
+   return;
+ }
+
+ if (!menu) {
+   alert('メニューを選択してください');
+   return;
+ }
+
+ if (!stylist) {
+   alert('スタイリストを選択してください');
+   return;
+ }
   // 予約データの収集
   reservationData = {
     username: document.getElementById('username')?.value.trim(),
@@ -267,14 +294,14 @@ document.getElementById('submitReservation').addEventListener('click', function 
 
   // 確認内容を整形
   const detailsHTML = `
-    <p><strong>予約者名:</strong> ${reservationData.username}</p>
-    <p><strong>電話番号:</strong> ${reservationData.phone || '未入力'}</p>
-    <p><strong>ご希望メニュー:</strong> ${reservationData.menu || '未入力'}</p>
-    <p><strong>担当スタイリスト:</strong> ${reservationData.stylist || '未選択'}</p>
+    <p><strong>予約者名<p></strong> ${reservationData.username}</p>
+    <p><strong>電話番号<p></strong> ${reservationData.phone || '未入力'}</p>
+    <p><strong>ご希望メニュー<p></strong> ${reservationData.menu || '未入力'}</p>
+    <p><strong>担当スタイリスト<p></strong> ${reservationData.stylist || '未選択'}</p>
     ${reservationData.preferences.map((pref, index) => `
-      <p><strong>第${index + 1}希望:</strong> ${pref.date} ${pref.time}</p>
+      <p><strong>第${index + 1}希望<p></strong> ${pref.date} ${pref.time}</p>
     `).join('')}
-    <p><strong>備考:</strong> ${reservationData.comments || "なし"}</p>
+    <p><strong>備考<p></strong> ${reservationData.comments || "なし"}</p>
   `;
 
   // 確認エリアにデータを設定
