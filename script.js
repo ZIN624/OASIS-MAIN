@@ -5,10 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }).then(() => {
     console.log('LIFF initialized successfully');
   }).catch((error) => {
-    
     console.error('LIFF initialization failed:', error);
     alert('LIFF initialization failed. Please reload the page or check the LIFF ID.');
-    
   });
 });
 
@@ -100,6 +98,44 @@ function populateDateOptions(selectId) {
   });
 }
 
+// 入力チェック関数
+// スタイリスト選択のバリデーションを修正
+function validateInputs() {
+  const username = document.getElementById('username')?.value.trim();
+  if (!username) {
+    alert('名前を入力してください。');
+    return false;
+  }
+  
+  const phone = document.getElementById('phoneNumber')?.value.trim();
+  if (!phone.match(/^0\d{1,4}-?(\d{1,4}){1,2}-?\d{4}$/)) {
+    alert('電話番号は正しい形式で入力してください。');
+    return false;
+  }
+  
+  // メニュー選択のバリデーション
+  const menu = document.getElementById('menu')?.value.trim();
+  if (!menu) {
+    alert('メニューを選択してください。');
+    return false;
+  }
+  
+  // スタイリスト選択のバリデーション
+  const selectedStylistInput = document.getElementById('selectedStylistInput');
+  const stylist = selectedStylistInput ? selectedStylistInput.value.trim() : '';
+  if (!stylist || stylist === '指名なし') {
+    alert('担当スタイリストを選択してください。');
+    return false;
+  }
+
+  return true;
+}
+// モーダルを閉じる関数
+function closeModal() {
+  document.getElementById('modal').style.display = 'none';
+  document.getElementById('modal').classList.add('hidden');
+}
+
 // 名前と電話番号の自動入力
 const nameInput = document.getElementById("username");
 const phoneInput = document.getElementById("phoneNumber");
@@ -117,11 +153,17 @@ phoneInput.addEventListener('input', function() {
 });
 
 // スタイリスト選択
-document.querySelectorAll('.stylist-card').forEach(card => {
-  card.addEventListener('click', () => {
-    document.querySelectorAll('.stylist-card').forEach(c => c.classList.remove('selected'));
-    card.classList.add('selected');
-    document.querySelector('#selectedStylistInput').value = card.dataset.stylist;
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.stylist-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.stylist-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      
+      const selectedStylistInput = document.getElementById('selectedStylistInput');
+      if (selectedStylistInput) {
+        selectedStylistInput.value = card.dataset.stylist;
+      }
+    });
   });
 });
 
@@ -174,7 +216,6 @@ window.onload = function() {
   populateDateOptions('day1');
 };
 
-
 // 予約データを収集する関数
 let reservationData = {};
 
@@ -191,7 +232,7 @@ document.getElementById('submitReservation').addEventListener('click', function 
     username: document.getElementById('username')?.value.trim(),
     phone: document.getElementById('phoneNumber')?.value.trim(),
     menu: document.getElementById('menu')?.value.trim(),
-    stylist: document.getElementById('staff')?.value.trim(),
+    stylist: document.getElementById('selectedStylistInput')?.value.trim(),
     preferences: ['1', '2', '3'].map(num => ({
       date: document.getElementById(`day${num}`)?.value || '',
       time: document.getElementById(`time${num}`)?.value || ''
@@ -213,12 +254,6 @@ document.getElementById('submitReservation').addEventListener('click', function 
   document.getElementById('modal').classList.remove('hidden');
 });
 
-// モーダルを閉じる関数
-function closeModal() {
-  document.getElementById('modal').style.display = 'none';
-  document.getElementById('modal').classList.add('hidden');
-}
-
 // キャンセルボタン
 document.getElementById('cancelReservation').addEventListener('click', function(event) {
   event.preventDefault(); // デフォルトの動作を防止
@@ -235,6 +270,9 @@ window.addEventListener("click", function(event) {
 
 // 予約を確定するボタン
 document.getElementById("confirmReservation").addEventListener("click", function() {
+  // 入力チェックを再度実行
+  if (!validateInputs()) return;
+
   console.log('ConfirmReservation押されたよお');
 
   // reservationDataを利用してメッセージ作成
@@ -249,36 +287,26 @@ document.getElementById("confirmReservation").addEventListener("click", function
   console.log('Constructed message to be sent via LINE:');
   console.log(message);
 
+  // LINE送信の前にログインチェック
+  if (!liff.isLoggedIn()) {
+    liff.login();
+    return;
+  }
+
   // LINEメッセージ送信
-
-    liff.sendMessages([{
-      type: 'text',
-      text: message
-    }])
-    .then(() => {
-      alert('予約希望が送信されました！');
-      console.log('Message sent successfully.');
-    })
-    .catch(err => {
-      console.error('LIFF初期化に失敗しました:', err);
-      alert('LIFF初期化に失敗しました。');
-    });
+  liff.sendMessages([{
+    type: 'text',
+    text: message,
+  }])
+  .then(() => {
+    alert('予約希望が送信されました！');
+    console.log('Message sent successfully.');
+    // モーダルを閉じる
+    closeModal();
+    liff.closeWindow();
   })
-
-
-
-
-// 入力チェック関数
-function validateInputs() {
-  const username = document.getElementById('username')?.value.trim();
-  if (!username) {
-    alert('名前を入力してください。');
-    return false;
-  }
-  const phone = document.getElementById('phoneNumber')?.value.trim();
-  if (!phone.match(/^0\d{1,4}-?(\d{1,4}){1,2}-?\d{4}$/)) {
-    alert('電話番号は正しい形式で入力してください。');
-    return false;
-  }
-  return true;
-}
+  .catch((err) => {
+    console.error('メッセージ送信エラー:', err);
+    alert('メッセージ送信に失敗しました。もう一度お試しください。');
+  });
+});
