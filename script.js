@@ -316,6 +316,8 @@ document.getElementById('editReservation').addEventListener('click', function ()
 
 // 確定ボタン
 document.getElementById('confirmReservation').addEventListener('click', function () {
+  console.log('送信前の予約データ:', reservationData);  // ここでデータが正しいか確認
+  
   let message = '予約希望メッセージ:\n';
 
   // 空でないデータのみメッセージに追加
@@ -332,6 +334,8 @@ document.getElementById('confirmReservation').addEventListener('click', function
 
   if (reservationData.comments) message += `備考: ${reservationData.comments}\n`;
 
+  console.log('送信するメッセージ:', message);  // 送信前にメッセージを確認
+
   // メッセージをLINEに送信
   liff.sendMessages([{
     type: 'text',
@@ -343,6 +347,7 @@ document.getElementById('confirmReservation').addEventListener('click', function
     alert(`エラー: ${error.message}`);
   });
 });
+
 
 
   
