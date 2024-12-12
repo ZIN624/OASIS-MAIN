@@ -8,9 +8,6 @@ liff.init({
     language: liff.getLanguage(),
     context: liff.getContext()
   });
-      // 初期化成功時のアラート（デバッグ用）
-      alert('LIFF初期化成功: クライアント内=' + liff.isInClient() + 
-      ', ログイン状態=' + liff.isLoggedIn());
 }).catch((error) => {
   console.error('LIFF初期化エラー:', error);
   console.error('エラー詳細:', JSON.stringify(error, null, 2));
@@ -274,7 +271,7 @@ document.getElementById('submitReservation').addEventListener('click', function 
 
   // 確認内容を整形
   const detailsHTML = `
-    <p><strong>予約者名:</strong> ${reservationData.username || '未入力'}</p>
+    <p><strong>予約者名:</strong> ${reservationData.username}</p>
     <p><strong>電話番号:</strong> ${reservationData.phone || '未入力'}</p>
     <p><strong>ご希望メニュー:</strong> ${reservationData.menu || '未入力'}</p>
     <p><strong>担当スタイリスト:</strong> ${reservationData.stylist || '未選択'}</p>
@@ -305,6 +302,9 @@ document.getElementById('submitReservation').addEventListener('click', function 
 
   console.log('フォームのスタイル:', getComputedStyle(reservationForm).display);
   console.log('確認エリアのスタイル:', getComputedStyle(reservationSummary).display);
+
+   // 確認エリアにスクロールする
+   reservationSummary.scrollIntoView({ behavior: 'smooth', block: 'start' });  // スムーズに一番上へスクロール
 });
 
 
@@ -320,28 +320,23 @@ document.getElementById('editReservation').addEventListener('click', function ()
 
 // 確定ボタン
 document.getElementById('confirmReservation').addEventListener('click', function () {
-  let message = `
-    予約希望メッセージ:
-    予約者名: ${reservationData.username || '（未入力）'}
-    電話番号: ${reservationData.phone || '（未入力）'}
-    メニュー: ${reservationData.menu || '（未入力）'}
-    スタイリスト: ${reservationData.stylist || '（未入力）'}
-    備考: ${reservationData.comments || '（未入力）'}
-  `;
+  let message = '予約希望メッセージ:\n';
 
-  // preferencesが配列であり、かつ空でないかを確認
+  // 空でないデータのみメッセージに追加
+  if (reservationData.username) message += `予約者名: ${reservationData.username}\n`;
+  if (reservationData.phone) message += `電話番号: ${reservationData.phone}\n`;
+  if (reservationData.menu) message += `メニュー: ${reservationData.menu}\n`;
+  if (reservationData.stylist) message += `スタイリスト: ${reservationData.stylist}\n`;
+
   if (Array.isArray(reservationData.preferences) && reservationData.preferences.length > 0) {
-    message += `\n希望日時:\n${reservationData.preferences.map((pref, index) => {
-      if (pref && pref.date && pref.time) { // prefの日付と時間が正しく存在するかを確認
-        return `第${index + 1}希望: ${pref.date} ${pref.time}`;
-      } else {
-        return `第${index + 1}希望: （未入力）`; // 日付または時間が未入力の場合
-      }
+    message += `希望日時:\n${reservationData.preferences.map((pref, index) => {
+      return `${index + 1}希望: ${pref.date} ${pref.time}`;
     }).join('\n')}`;
-  } else {
-    message += '\n希望日時: （未入力）';
   }
 
+  if (reservationData.comments) message += `備考: ${reservationData.comments}\n`;
+
+  // メッセージをLINEに送信
   liff.sendMessages([{
     type: 'text',
     text: message
@@ -352,7 +347,6 @@ document.getElementById('confirmReservation').addEventListener('click', function
     alert(`エラー: ${error.message}`);
   });
 });
-
 
 
 
