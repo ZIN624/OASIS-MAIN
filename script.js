@@ -238,29 +238,25 @@ document.getElementById('submitReservation').addEventListener('click', function 
   event.preventDefault();
 
   console.log('送信ボタンがクリックされました');
+  console.log('予約データ:', reservationData);  // reservationDataをコンソールに表示
 
   // 予約データの収集
-  const reservationData = {
+  reservationData = {
     username: document.getElementById('username')?.value.trim(),
     phone: document.getElementById('phoneNumber')?.value.trim(),
     menu: document.getElementById('menu')?.value.trim(),
     stylist: document.getElementById('selectedStylistInput')?.value.trim(),
     
-    // 予約の第1, 第2, 第3希望
     preferences: (['1', '2', '3'].map(num => {
-      const date = document.getElementById(`day${num}`)?.value || ''; // 日付
-      const time = document.getElementById(`time${num}`)?.value || ''; // 時間
-      return { date, time }; // オブジェクトとして保存
+      const date = document.getElementById(`day${num}`)?.value || '';
+      const time = document.getElementById(`time${num}`)?.value || '';
+      return { date, time };
     })).filter(pref => pref.date && pref.time),  // 日付と時間があるもののみフィルタリング
 
     comments: document.getElementById('comments')?.value.trim()
   };
 
-  // `preferences` の内容をデバッグ
-  console.log('収集した予約データ:', reservationData);
-
-  // preferences の内容を詳細にログ出力
-  console.log('preferences:', reservationData.preferences);
+  console.log('収集した予約データ:', reservationData);  // 再度確認
 
   // preferences が配列で、空でないかを確認
   if (!Array.isArray(reservationData.preferences) || reservationData.preferences.length === 0) {
@@ -347,7 +343,6 @@ document.getElementById('confirmReservation').addEventListener('click', function
     alert(`エラー: ${error.message}`);
   });
 });
-
 
 
   
