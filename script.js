@@ -1,12 +1,25 @@
 // LIFF初期化（DOMContentLoadedイベント内で呼び出す）
 document.addEventListener('DOMContentLoaded', () => {
   liff.init({
-    liffId: '2006621786-8K7V4W3M' // LINE Developersから取得したLIFF ID
+    liffId: '2006621786-8K7V4W3M'
   }).then(() => {
-    console.log('LIFF initialized successfully');
+    console.log('LIFF初期化成功');
+    console.log('LIFF環境情報:', {
+      isInClient: liff.isInClient(),
+      isLoggedIn: liff.isLoggedIn(),
+      language: liff.getLanguage(),
+      context: liff.getContext()
+    });
+        // 初期化成功時のアラート（デバッグ用）
+        alert('LIFF初期化成功: クライアント内=' + liff.isInClient() + 
+        ', ログイン状態=' + liff.isLoggedIn());
   }).catch((error) => {
-    console.error('LIFF initialization failed:', error);
-    alert('LIFF initialization failed. Please reload the page or check the LIFF ID.');
+    console.error('LIFF初期化エラー:', error);
+    console.error('エラー詳細:', JSON.stringify(error, null, 2));
+    alert('LIFF初期化に失敗しました。以下の点を確認してください：\n' +
+          '1. インターネット接続\n' +
+          '2. LINEアプリ内で開いているか\n' +
+          '3. LIFF IDが正しいか');
   });
 });
 
@@ -290,27 +303,58 @@ document.getElementById("confirmReservation").addEventListener("click", function
     liffId: liff.getContext().liffId
   });
 
-  if (!liff.isLoggedIn()) {
-    liff.login({ redirectUri: window.location.href });
+  // LIFF初期化と送信の前に追加チェック
+  if (!liff.isInitialized()) {
+    alert('LINEフレームワークが初期化されていません。再読み込みしてください。');
     return;
   }
 
-  liff.sendMessages([{
-    type: 'text',
-    text: message,
-  }])
-  .then(() => {
-    alert('予約希望が送信されました！');
-    liff.closeWindow();
-  })
-  .catch((err) => {
-    console.error('メッセージ送信エラー:', err);
-    console.error('エラー詳細:', JSON.stringify(err, null, 2));
-    console.error('エラーコード:', err.code);
-    console.error('エラーメッセージ:', err.message);
-    
-    alert(`メッセージ送信に失敗しました。
-    詳細: ${err.message}
-    もう一度お試しください。`);
-  });
+  // クライアント内かどうかを確認
+  if (!liff.isInClient()) {
+    alert('LINEアプリ内で実行してください。');
+    return;
+  }
+
+  // ログイン状態の確認
+  if (!liff.isLoggedIn()) {
+    liff.login({
+      redirectUri: window.location.href // 現在のページに戻る
+    });
+    return;
+  }
+
+  // メッセージ送信処理
+  try {
+    liff.sendMessages([{
+      type: 'text',
+      text: message,
+    }])
+    .then(() => {
+      console.log('メッセージ送信成功');
+      alert('予約希望が送信されました！');
+        // 即座に閉じるのを遅らせる
+    setTimeout(() => {
+      liff.closeWindow();
+    }, 3000); // 3秒後に閉じる
+    })
+    .catch((err) => {
+      console.error('メッセージ送信エラー:', err);
+      console.error('エラー詳細:', JSON.stringify(err, null, 2));
+      
+      // より詳細なエラーハンドリング
+      let errorMessage = 'メッセージ送信に失敗しました。';
+      if (err.message) {
+        errorMessage += `\nエラー: ${err.message}`;
+      }
+      errorMessage += '\n以下を確認してください：' +
+                      '\n1. インターネット接続' +
+                      '\n2. LINEアプリ内で開いているか' +
+                      '\n3. アプリの権限設定';
+      
+      alert(errorMessage);
+    });
+  } catch (error) {
+    console.error('送信処理中の予期せぬエラー:', error);
+    alert('送信処理中に予期せぬエラーが発生しました。');
+  }
 });
