@@ -86,61 +86,91 @@ gap: 10px;
 padding: 10px;
 }
 
-/* 個々のカードのスタイル */
+/* スタイリストカードコンテナ */
+#stylist-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .stylist-card {
-width: calc(50% - 10px); /* スマートフォン横向きで2列 */
-max-width: 200px;
-aspect-ratio: 1 / 1;
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-text-align: center;
-border: 2px solid #ddd;
-border-radius: 10px;
-padding: 10px;
-cursor: pointer;
-transition: all 0.3s ease;
+  flex: 0 1 calc(50% - 15px);
+  max-width: 250px;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 5px;
+  box-sizing: border-box;
 }
 
 .stylist-card:hover {
-transform: translateY(-10px); /* ホバーで浮き上がるエフェクト */
+  transform: translateY(-10px);
+}
+
+.stylist-card.selected {
+  border: 3px solid #4CAF50;
+  box-shadow: 0 8px 10px rgba(0, 0, 0, 0.15);
+  background-color: #f9fff9;
 }
 
 /* スタイリスト画像のスタイル */
 .stylist-image img {
-width: 100%;
-height: auto;
-border-bottom: 1px solid #ddd;
-}
+  width: 100%;
+  height: auto;
+  border-bottom: 1px solid #ddd;
+  }
 
-/* スタイリスト情報 */
 .stylist-info {
-padding: 10px;
+  padding: 10px;
 }
 
 .stylist-info h3 {
-margin: 10px 0;
-font-size: 18px;
-color: #333;
+  margin: 10px 0;
+  font-size: 20px;
+  color: #333;
 }
 
 .stylist-info p {
-margin: 0;
-font-size: 14px;
-color: #666;
-}
-/* 選択時のカードのスタイル */
-.stylist-card.selected {
-border: 10px solid #4CAF50; /* 緑の枠線 */
-box-shadow: 0 8px 10px rgba(0, 0, 0, 0.15);
-background-color: #f9fff9; /* 少し緑がかった背景色 */
+  margin: 0;
+  font-size: 16px;
+  color: #666;
 }
 
-/* 通常カードのスタイル */
-.stylist-card {
-cursor: pointer; /* カーソルをクリック可能に */
-transition: all 0.3s ease;
+@media (min-width: 768px) {
+  #stylist-container {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .stylist-card {
+    flex: 0 1 calc(33.33% - 15px);
+    max-width: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stylist-card {
+    flex: 0 1 calc(100% - 10px);
+    max-width: 100%;
+    margin: 5px 0;
+  }
+}
+/* スマホ向けにスタイリスト画像のサイズを制限 */
+@media screen and (max-width: 767px) {
+  .stylist-image img {
+    max-width: 80%;   /* スタイリスト画像が親要素の幅の80%以内で表示される */
+    margin: 0 auto;   /* 中央揃え */
+  }
 }
 
 /* 土日を赤く表示 */
