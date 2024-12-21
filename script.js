@@ -27,13 +27,17 @@ function generateDates(maxDays = 180) {
   const today = new Date();
   const dates = [];
 
+  // 今日の日付の基準をUTC 0時に固定
+  const startDate = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+
   for (let i = 0; i < maxDays; i++) {
-    const currentDate = new Date(today);
-    currentDate.setDate(today.getDate() + i);
-    const dayOfWeek = currentDate.getDay();
+    const currentDate = new Date(startDate);
+    currentDate.setUTCDate(startDate.getUTCDate() + i); // UTC日付を計算
+
+    const dayOfWeek = currentDate.getUTCDay(); // UTCベースの曜日を取得
+    const formattedDate = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD形式
 
     // 月曜・火曜、または休業日はスキップ
-    const formattedDate = currentDate.toISOString().split('T')[0];
     if (dayOfWeek === 1 || dayOfWeek === 2 || holidays.includes(formattedDate)) continue;
 
     dates.push({
