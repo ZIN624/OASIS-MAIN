@@ -19,8 +19,8 @@ liff.init({
 
 
 // 特別営業日と休業日の定義
-const specialWorkingDays = [''];
-const holidays = ['2024-12-31', '2025-01-01', '2025-01-02','2025-01-03','2025-01-12',];
+const specialWorkingDays = ['2025-05-05'];
+const holidays = ['2024-12-31', '2025-01-01', '2025-01-02','2025-01-03','2025-01-12',2025-05-04];
 
 // 日付生成関数（半年分）
 function generateDates(maxDays = 180) {
