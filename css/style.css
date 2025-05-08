@@ -1,0 +1,335 @@
+/* ========== 1. 全体基本スタイル ========== */
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f8f8f8;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  text-align: center;
+  color: #FFF;
+  margin-top: 20px;
+  background-color: #4CAF50;
+  padding: 10px 0;
+}
+
+.title {
+  font-size: 1.6em;
+  color: #4CAF50;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.required {
+  color: white;
+  background-color: red;
+  padding: 2px 10px;
+  font-size: 0.5em;
+  font-weight: bold;
+  display: inline-block;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+
+/* ========== 2. 入力フォーム共通 ========== */
+.input-wrapper {
+  margin: 10px;
+}
+
+.input-label {
+  font-size: 1.2em;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.input-select,
+.input-field,
+.input-textarea {
+  font-size: 1em;
+  padding: 10px;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  transition: border-color 0.3s ease;
+}
+
+.input-select:focus,
+.input-field:focus,
+.input-textarea:focus {
+  outline: none;
+  border-color: #4CAF50;
+  background-color: #fff;
+}
+
+#other-input-container {
+  display: none;
+}
+
+.red-day {
+  color: red;
+}
+
+.hidden {
+  display: none;
+}
+
+/* ========== 3. ボタン類 ========== */
+button,
+.btn,
+#submitReservation,
+#editReservation,
+#confirmReservation {
+  padding: 12px;
+  font-size: 1.5em;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  margin-bottom: 10px ;
+}
+
+button:hover,
+.btn:hover,
+#submitReservation:hover {
+  background-color: #45a049;
+}
+
+#addSecondChoice,
+#addThirdChoice {
+  font-size: 1.5em;
+}
+
+#addThirdChoice{
+  margin-bottom: 20px;
+}
+/* ========== 4. 日付選択エリア ========== */
+.date-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* ========== 5. スタイリストカード ========== */
+#stylist-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.stylist-card {
+  flex: 0 1 calc(50% - 15px);
+  max-width: 250px;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 5px;
+  box-sizing: border-box;
+}
+
+.stylist-card:hover {
+  transform: translateY(-10px);
+}
+
+.stylist-card.selected {
+  border: 3px solid #4CAF50;
+  box-shadow: 0 8px 10px rgba(0, 0, 0, 0.15);
+  background-color: #f9fff9;
+}
+
+.stylist-image img {
+  width: 100%;
+  height: auto;
+  border-bottom: 1px solid #ddd;
+}
+
+.stylist-info {
+  padding: 10px;
+}
+
+.stylist-info h3 {
+  margin: 10px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.stylist-info p {
+  margin: 0;
+  font-size: 16px;
+  color: #666;
+}
+
+/* ========== 6. 確認画面 ========== */
+#reservationSummary {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+#reservationSummary p {
+  margin-bottom: -10px;
+  font-size: 2em;
+  line-height: 1em;
+}
+
+#reservationSummary h2 {
+  text-align: center;
+  font-size: 3em;
+}
+
+#reservationSummary .required {
+  font-size: 1.2em;
+  color: red;
+  font-weight: bold;
+}
+
+#summaryDetails {
+  font-size: 20px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  padding: 0 20px;
+}
+
+#summaryDetails strong {
+  color: #4CAF50;
+}
+
+/* ========== 7. 同意事項セクション ========== */
+#agreement-summary {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f3f3f3;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+#agreement-summary h3 {
+  font-size: 3em;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+#agreement-summary ul {
+  margin-top: 10px;
+  padding-left: 20px;
+}
+#agreement-summary p {
+  margin-bottom: 10px;
+}
+#agreement-summary ul li {
+  margin-top: 10px;
+  margin-bottom: 8px;
+  font-size: 2em;
+  color: red;
+}
+
+#agreement-summary label {
+  font-size: 2em;
+  color: #4CAF50;
+  cursor: pointer;
+}
+
+#agreement-summary input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-top: 5px;
+  margin-right: 10px;
+}
+
+.highlighted {
+  font-weight: bold;
+}
+
+/* ========== 8. モーダルウィンドウ ========== */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  height: 80%;
+  overflow: auto;
+  font-size: 18px;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* ========== 9. レスポンシブ対応 ========== */
+@media (min-width: 768px) {
+  #stylist-container {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .stylist-card {
+    flex: 0 1 calc(33.33% - 15px);
+    max-width: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  #reservationSummary {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stylist-card {
+    flex: 0 1 calc(100% - 10px);
+    max-width: 100%;
+    margin: 5px 0;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .stylist-image img {
+    max-width: 80%;
+    margin: 0 auto;
+  }
+}
