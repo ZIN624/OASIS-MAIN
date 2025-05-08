@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ========== 2. 日付生成と特別営業日・休業日定義 ========== //
-const specialWorkingDays = ['2024-12-30'];
+const specialWorkingDays = [''];
 const holidays = ['2024-12-31', '2025-01-01', '2025-01-02','2025-01-03','2025-01-12'];
 
 function generateDates(maxDays = 180) {
