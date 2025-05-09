@@ -33,6 +33,71 @@ h1 {
   margin-left: 8px;
 }
 
+
+.step-progress {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 30px 0;
+  position: relative;
+  padding: 0 10px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* ← 上揃えにする */
+  text-align: center;
+  flex: 1;
+  min-height: 80px; /* ← 高さを統一してズレを防ぐ */
+  box-sizing: border-box;
+}
+
+
+.step .circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #ccc;
+  color: #fff;
+  text-align: center;
+  line-height: 30px;
+  font-weight: bold;
+  z-index: 2;
+}
+
+.step.active .circle {
+  background-color: #4CAF50;
+}
+
+.step.completed .circle::before {
+  content: "✓";
+  display: block;
+  color: white;
+  font-size: 20px;
+  line-height: 30px;
+}
+
+.step p {
+  margin-top: 5px;
+  font-size: auto;
+  color: #333;
+}
+
+.line {
+  height: 4px;
+  background-color: #ccc;
+  flex: 1;
+  z-index: 1;
+  margin: 0 5px;
+}
+
+.line.active {
+  background-color: #4CAF50;
+}
+
+
 /* ========== 2. 入力フォーム共通 ========== */
 .input-wrapper {
   margin: 10px;
