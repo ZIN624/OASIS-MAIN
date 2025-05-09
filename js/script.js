@@ -33,16 +33,18 @@ liff.init({
   // ========== 次へ進む ==========
   function goToNextStep() {
     if (!validateStep(currentStepIndex)) return;
-
+  
     const currentId = steps[currentStepIndex];
     const nextId = steps[currentStepIndex + 1];
     if (!nextId) return;
-
+  
     document.getElementById(currentId).style.display = 'none';
     document.getElementById(nextId).style.display = 'block';
     currentStepIndex++;
+  
+    updateStepIndicator(currentStepIndex); 
   }
-
+  
   // ========== 戻る ==========
   function goToPreviousStep() {
     const currentId = steps[currentStepIndex];
@@ -54,6 +56,8 @@ liff.init({
     document.getElementById(prevId).style.display = 'block';
 
     currentStepIndex--;
+
+    updateStepIndicator(currentStepIndex);
   }
 
   // ========== イベント登録 ==========
@@ -91,7 +95,40 @@ liff.init({
       document.getElementById(id).style.display = (i === currentStepIndex) ? 'block' : 'none';
     });
   });
+  updateStepIndicator(currentStepIndex); 
 });
+
+function updateStepIndicator(currentStepIndex) {
+  const stepCount = 4;
+
+  for (let i = 0; i < stepCount; i++) {
+    const step = document.getElementById(`step-${i}`);
+    const circle = step.querySelector('.circle');
+    step.classList.remove('active', 'completed');
+
+    if (i < currentStepIndex) {
+      step.classList.add('completed');
+      circle.textContent = '✓';
+    } else {
+      circle.textContent = i + 1;
+    }
+
+    if (i === currentStepIndex) {
+      step.classList.add('active');
+    }
+
+    // 線の更新（lineはステップ数-1本）
+    const line = document.querySelectorAll('.line')[i];
+    if (line) {
+      if (i < currentStepIndex) {
+        line.classList.add('active');
+      } else {
+        line.classList.remove('active');
+      }
+    }
+  }
+}
+
 
 
 // ========== 2. 日付生成と特別営業日・休業日定義 ========== //
