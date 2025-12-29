@@ -132,8 +132,24 @@ function updateStepIndicator(currentStepIndex) {
 
 
 // ========== 2. 日付生成と特別営業日・休業日定義 ========== //
-const specialWorkingDays = ['2025-12-29','2025-12-30',];
-const holidays = ['2025-12-31', '2026-01-01', '2026-01-02','2026-01-03','2026-01-11',];
+
+const specialWorkingDays = [
+  '2025-12-29',
+  '2025-12-30',
+  '2026-1-5',
+  '2026-1-6',
+];
+
+const holidays =
+  ['2025-12-31',
+   '2026-01-01',
+   '2026-01-02',
+   '2026-01-03',
+   '2026-01-11',
+  ];
+
+
+
 
 function generateDates(maxDays = 180) {
   const today = new Date();
@@ -452,3 +468,4 @@ document.getElementById('confirmReservation').addEventListener('click', function
     alert(`エラー: ${error.message}`);
   });
 });
+
