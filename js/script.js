@@ -134,10 +134,7 @@ function updateStepIndicator(currentStepIndex) {
 // ========== 2. 日付生成と特別営業日・休業日定義 ========== //
 
 const specialWorkingDays = [
-  '2025-12-29',
-  '2025-12-30',
-  '2026-01-05',
-  '2026-01-06',
+
 ];
 
 const holidays =
