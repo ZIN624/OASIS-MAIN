@@ -1,400 +1,628 @@
-/* ========== 1. 全体基本スタイル ========== */
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: 'Arial', sans-serif;
-  background-color: #f8f8f8;
-  color: #333;
   margin: 0;
-  padding: 0;
+  font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+  background: linear-gradient(180deg, #edf5ef 0%, #f3f7f4 52%, #f8fbf9 100%);
+  color: #233228;
+  line-height: 1.55;
+}
+
+section {
+  width: min(100% - 1rem, 47.5rem);
+  margin: 0.75rem auto;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
 }
 
 h1 {
+  padding: 1.1rem 1rem;
+  border-radius: 0.875rem;
   text-align: center;
-  color: #FFF;
-  margin-top: 20px;
-  background-color: #4CAF50;
-  padding: 10px 0;
-}
-
-.title {
-  font-size: 1.6em;
-  color: #4CAF50;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
-.required {
-  color: white;
-  background-color: red;
-  padding: 2px 10px;
-  font-size: 0.5em;
-  font-weight: bold;
-  display: inline-block;
-  border-radius: 4px;
-  margin-left: 8px;
-}
-
-
-.step-progress {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin: 30px 0;
-  position: relative;
-  padding: 0 10px;
-}
-
-.step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start; /* ← 上揃えにする */
-  text-align: center;
-  flex: 1;
-  min-height: 80px; /* ← 高さを統一してズレを防ぐ */
-  box-sizing: border-box;
-}
-
-
-.step .circle {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background-color: #ccc;
   color: #fff;
-  text-align: center;
-  line-height: 30px;
-  font-weight: bold;
-  z-index: 2;
+  background: linear-gradient(120deg, #2f8f57 0%, #38a66a 100%);
+  box-shadow: 0 0.5rem 1.375rem rgba(23, 52, 36, 0.08);
+  font-size: clamp(1.38rem, 3.2vw + 0.8rem, 1.95rem);
 }
 
-.step.active .circle {
-  background-color: #4CAF50;
+h2 {
+  font-size: clamp(1.1rem, 2vw + 0.65rem, 1.36rem);
 }
 
-.step.completed .circle::before {
-  content: "✓";
-  display: block;
-  color: white;
-  font-size: 20px;
-  line-height: 30px;
+h3 {
+  font-size: clamp(1rem, 1.4vw + 0.7rem, 1.14rem);
 }
 
-.step p {
-  margin-top: 5px;
-  font-size: auto;
-  color: #333;
+@media (min-width: 40rem) {
+  section {
+    width: min(100% - 2rem, 51.25rem);
+    margin: 1rem auto;
+  }
+}
+button,
+.btn,
+.submit-btn,
+.agree-btn {
+  min-height: 3rem;
+  padding: 0.92rem 1rem;
+  border: 0;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  line-height: 1;
+  font-weight: 700;
+  color: #fff;
+  background: #2f8f57;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+button:hover,
+.btn:hover,
+.submit-btn:hover,
+.agree-btn:hover {
+  background: #247345;
+  box-shadow: 0 0.375rem 0.75rem rgba(36, 115, 69, 0.2);
+}
+button:active,
+.btn:active,
+.submit-btn:active,
+.agree-btn:active {
+  transform: translateY(0.0625rem);
+}
+button:disabled,
+.btn:disabled,
+.submit-btn:disabled,
+.agree-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
-.line {
-  height: 4px;
-  background-color: #ccc;
-  flex: 1;
-  z-index: 1;
-  margin: 0 5px;
+.btn-sub {
+  border: 1px solid #cfe0d5;
+  background: #f0f6f2;
+  color: #2f5f46;
+}
+.btn-sub:hover {
+  background: #e5f0e9;
+  box-shadow: none;
 }
 
-.line.active {
-  background-color: #4CAF50;
-}
-
-
-/* ========== 2. 入力フォーム共通 ========== */
 .input-wrapper {
-  margin: 10px;
+  margin: 0.42rem 0;
+}
+.input-wrapper .error-text {
+  margin: 0.25rem 0 0;
+  min-height: 1em;
+  color: #cc2c2c;
+  font-size: 0.83rem;
 }
 
 .input-label {
-  font-size: 1.2em;
-  margin-bottom: 5px;
   display: block;
+  margin-bottom: 0.38rem;
+  font-size: 0.92rem;
+  color: #5f7265;
 }
 
-.input-select,
 .input-field,
-.input-textarea {
-  font-size: 1em;
-  padding: 10px;
+.input-select,
+.input-textarea,
+textarea,
+select,
+input[type=text] {
   width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #f9f9f9;
-  transition: border-color 0.3s ease;
+  border: 1px solid #d7e3db;
+  border-radius: 0.625rem;
+  background: #fff;
+  color: #233228;
+  padding: 0.78rem 0.8rem;
+  font-size: 1rem;
 }
-
-.input-select:focus,
 .input-field:focus,
-.input-textarea:focus {
-  outline: none;
-  border-color: #4CAF50;
-  background-color: #fff;
+.input-select:focus,
+.input-textarea:focus,
+textarea:focus,
+select:focus,
+input[type=text]:focus {
+  outline: 2px solid transparent;
+  border-color: #91c8a8;
+  box-shadow: 0 0 0 0.1875rem rgba(72, 160, 106, 0.14);
+}
+.input-field.error-field,
+.input-select.error-field,
+.input-textarea.error-field,
+textarea.error-field,
+select.error-field,
+input[type=text].error-field {
+  border-color: #d83d3d !important;
+  box-shadow: 0 0 0 0.1875rem rgba(216, 61, 61, 0.12) !important;
 }
 
-#other-input-container {
-  display: none;
+option.closed-day {
+  color: #9aa39d;
+  background: #f1f3f2;
 }
 
-.red-day {
-  color: red;
+option.red-day {
+  color: #c73030;
 }
 
-.hidden {
-  display: none;
+.required {
+  display: inline-block;
+  margin-left: 0.4rem;
+  border-radius: 999px;
+  padding: 0.13rem 0.55rem;
+  font-size: 0.69rem;
+  color: #fff;
+  background: #d83333;
 }
 
-/* ========== 3. ボタン類 ========== */
-button,
-.btn,
-#submitReservation,
-#editReservation,
-#confirmReservation {
-  padding: 12px;
-  font-size: 1.5em;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+.form-area {
+  border: 1px solid #d7e3db;
+  border-radius: 0.875rem;
+  background: #ffffff;
+  box-shadow: 0 0.5rem 1.375rem rgba(23, 52, 36, 0.08);
+  padding: 0.95rem;
+}
+
+.step-progress {
+  display: flex;
+  align-items: center;
   width: 100%;
-  box-sizing: border-box;
+  gap: 0.25rem;
+  margin: 1rem 0 0.8rem;
+  overflow: visible;
+  padding-bottom: 0.2rem;
+  justify-content: space-between;
+}
+
+.step {
+  min-width: 0;
+  flex: 1;
   text-align: center;
-  margin-bottom: 10px ;
 }
-
-button:hover,
-.btn:hover,
-#submitReservation:hover {
-  background-color: #45a049;
+.step p {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  color: #5f7265;
 }
-
-#addSecondChoice,
-#addThirdChoice {
-  font-size: 1.5em;
-}
-
-#addThirdChoice{
-  margin-bottom: 20px;
-}
-/* ========== 4. 日付選択エリア ========== */
-.date-container {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* ========== 5. スタイリストカード ========== */
-#stylist-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 15px;
-  padding: 10px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.stylist-card {
-  flex: 0 1 calc(50% - 15px);
-  max-width: 250px;
-  aspect-ratio: 1 / 1;
-  display: flex;
-  flex-direction: column;
+.step .circle {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  border: 2px solid #ddd;
-  border-radius: 10px;
-  padding: 15px;
-  margin: 5px;
-  box-sizing: border-box;
+  width: 2.125rem;
+  height: 2.125rem;
+  border-radius: 999px;
+  border: 1px solid #bfddca;
+  color: #247345;
+  background: #e6f4eb;
+  font-weight: 700;
 }
 
-.stylist-card:hover {
-  transform: translateY(-10px);
+.line {
+  width: auto;
+  height: 0.125rem;
+  flex: 0.35;
+  background: #cfe3d6;
 }
 
-.stylist-card.selected {
-  border: 3px solid #4CAF50;
-  box-shadow: 0 8px 10px rgba(0, 0, 0, 0.15);
-  background-color: #f9fff9;
+.date-container {
+  padding: 0.78rem;
+  border: 1px solid #d7e3db;
+  border-radius: 0.75rem;
+  background: #f9fcfa;
 }
 
-.stylist-image img {
-  width: 100%;
-  height: auto;
-  border-bottom: 1px solid #ddd;
+.calendar-select-source {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
 }
 
-.stylist-info {
-  padding: 10px;
-}
-
-.stylist-info h3 {
-  margin: 10px 0;
-  font-size: 20px;
-  color: #333;
-}
-
-.stylist-info p {
-  margin: 0;
-  font-size: 16px;
-  color: #666;
-}
-
-/* ========== 6. 確認画面 ========== */
-#reservationSummary {
+.calendar-picker {
   width: 100%;
   max-width: 100%;
-  margin: 0 auto;
-  padding: 5px;
-  box-sizing: border-box;
+  border: 1px solid #ccd8d0;
+  border-radius: 0.5rem;
+  background: #f3f3f3;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
 }
-
-#reservationSummary p {
-  margin-bottom: -10px;
-  font-size: 24px;
-  line-height: 1em;
+.calendar-picker__header {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr 2.25rem;
+  align-items: center;
+  border-bottom: 1px solid #d4d9d6;
+  background: #fff;
 }
-
-#reservationSummary h2 {
+.calendar-picker__nav {
+  border: 0;
+  min-height: 2.25rem;
+  background: transparent;
+  color: #3a6ea5;
+  font-size: 1.5rem;
+  font-weight: 500;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+.calendar-picker__nav:hover {
+  background: transparent;
+  color: #2b5f94;
+  box-shadow: none;
+}
+.calendar-picker__month {
   text-align: center;
-  font-size: 3rem;
+  color: #2b3135;
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 2.25rem;
+}
+.calendar-picker__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid #d4d9d6;
+  background: #fff;
+}
+.calendar-picker__weekdays span {
+  text-align: center;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 2rem;
+  color: #2f3438;
+}
+.calendar-picker__weekdays .sun {
+  color: #c43a2f;
+}
+.calendar-picker__weekdays .sat {
+  color: #2b70b7;
+}
+.calendar-picker__grid {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.calendar-picker__day {
+  border: 0;
+  border-right: 1px solid #d4d9d6;
+  border-bottom: 1px solid #d4d9d6;
+  border-radius: 0;
+  background: #fff;
+  color: #2f3438;
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: 1/1;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 500;
+  box-shadow: none;
+}
+.calendar-picker__day:nth-child(7n) {
+  border-right: 0;
+}
+.calendar-picker__day.outside {
+  color: #b4bbb7;
+  background: #f3f3f3;
+}
+.calendar-picker__day.sun {
+  color: #c43a2f;
+}
+.calendar-picker__day.sat {
+  color: #2b70b7;
+}
+.calendar-picker__day.closed {
+  color: #aeb5b1;
+  background: #e5e7e6;
+  cursor: not-allowed;
+}
+.calendar-picker__day.selected {
+  color: #fff;
+  background: #2f8f57;
+  font-weight: 700;
+}
+.calendar-picker__day:hover:not(.closed):not(.selected) {
+  background: #eef3ef;
+  box-shadow: none;
+  color: #2f3438;
 }
 
-#reservationSummary .required {
-  font-size: 1.2em;
-  color: red;
-  font-weight: bold;
+#menu-container,
+#stylist-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.72rem;
+  margin-top: 0.6rem;
+}
+
+.menu-card.disabled {
+  opacity: 0.38;
+  filter: grayscale(60%);
+  cursor: not-allowed;
+  pointer-events: none;
+  border-color: #ccc;
+}
+
+.menu-card,
+.stylist-card {
+  border: 1px solid #d7e3db;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 0.25rem 0.75rem rgba(23, 52, 36, 0.06);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.menu-card.selected,
+.stylist-card.selected {
+  border-color: #5aa579;
+  box-shadow: 0 0 0 0.1875rem rgba(72, 160, 106, 0.2);
+}
+.menu-card .menu-image img,
+.stylist-card .menu-image img {
+  width: 100%;
+  aspect-ratio: 16/10;
+  -o-object-fit: cover;
+     object-fit: cover;
+  display: block;
+}
+.menu-card .menu-info,
+.menu-card .stylist-info,
+.stylist-card .menu-info,
+.stylist-card .stylist-info {
+  padding: 0.7rem 0.8rem 0.84rem;
+  text-align: center;
+}
+.menu-card .stylist-image,
+.stylist-card .stylist-image {
+  padding: 0.7rem;
+  background: #f7f9f8;
+  display: flex;
+  justify-content: center;
+}
+.menu-card .stylist-image img,
+.stylist-card .stylist-image img {
+  width: min(100%, 8.5rem);
+  height: auto;
+  max-height: 12rem;
+  -o-object-fit: contain;
+     object-fit: contain;
+  border: 1px solid #dde6e0;
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.scroll-hint {
+  position: fixed;
+  right: 1rem;
+  bottom: 1.1rem;
+  z-index: 20;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  color: #247345;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0.25rem);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid #d6e2da;
+  border-radius: 0.625rem;
+  padding: 0.35rem 0.5rem;
+  overflow: hidden;
+}
+.scroll-hint.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.scroll-hint__text {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.scroll-hint__arrow {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-right: 0.125rem solid #247345;
+  border-bottom: 0.125rem solid #247345;
+  transform: rotate(45deg);
+  animation: scroll-bounce 1.2s ease-in-out infinite;
+}
+
+@keyframes scroll-bounce {
+  0%, 100% {
+    transform: rotate(45deg) translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: rotate(45deg) translateY(0.12rem);
+    opacity: 1;
+  }
+}
+@media (min-width: 40rem) {
+  .form-area {
+    padding: 1.25rem;
+  }
+  #menu-container,
+  #stylist-container {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.select {
+  min-height: 60vh;
+  display: grid;
+  gap: 0.75rem;
+  align-content: center;
+  justify-items: center;
+  padding: 1rem;
+}
+.select > button {
+  width: min(100%, 22rem);
+}
+
+.notice,
+.mode-panel {
+  border: 1px solid #d7e3db;
+  border-radius: 0.875rem;
+  background: #ffffff;
+  box-shadow: 0 0.5rem 1.375rem rgba(23, 52, 36, 0.08);
+  padding: 1rem;
+  animation: panel-in 0.25s ease;
+}
+
+.notice__title {
+  text-align: center;
+  color: #247345;
+  margin-bottom: 0.9rem;
+}
+.notice__text p {
+  font-size: 0.96rem;
+}
+
+.existing-question {
+  margin-bottom: 0.9rem;
+}
+
+.existing-actions {
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 0.7rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin-top: 1rem;
+  color: #5f7265;
+}
+
+.checkbox-box {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+  accent-color: #2f8f57;
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (min-width: 40rem) {
+  .select {
+    min-height: 50vh;
+    grid-template-columns: 1fr 1fr;
+  }
+  .select > button {
+    width: 100%;
+    max-width: 18rem;
+  }
+}
+#reservationSummary {
+  padding: 0.95rem;
+  border: 1px solid #d7e3db;
+  border-radius: 0.875rem;
+  background: #ffffff;
+  box-shadow: 0 0.5rem 1.375rem rgba(23, 52, 36, 0.08);
 }
 
 #summaryDetails {
-  font-size: 8px;
+  margin-top: 0.65rem;
+  padding: 0.7rem;
+  border: 1px solid #d7e3db;
+  border-radius: 0.625rem;
+  background: #f9fcfa;
   white-space: pre-wrap;
-  word-wrap: break-word;
-  padding: 0 20px;
+  word-break: break-word;
+  font-size: 0.95rem;
+}
+#summaryDetails p {
+  margin: 0;
+  line-height: 1.05;
+  padding: 0.05rem 0;
 }
 
-#summaryDetails strong {
-  color: #4CAF50;
-}
-
-/* ========== 7. 同意事項セクション ========== */
 #agreement-summary {
-  margin-top: 20px;
-  padding: 15px;
-  background-color: #f3f3f3;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border: 1px solid #d7e3db;
+  border-radius: 0.75rem;
+  background: #f6fbf8;
 }
-
-#agreement-summary h3 {
-  font-size: 3em;
-  color: #333;
-  margin-bottom: 10px;
-}
-
 #agreement-summary ul {
-  margin-top: 10px;
-  padding-left: 20px;
+  margin: 0.62rem 0;
+  padding-left: 1.2rem;
 }
-#agreement-summary p {
-  margin-bottom: 10px;
+#agreement-summary li {
+  margin-bottom: 0.34rem;
 }
-#agreement-summary ul li {
-  margin-top: 10px;
-  margin-bottom: 8px;
-  font-size: 24px;
-  color: red;
+#agreement-summary li.highlighted {
+  color: #b72a2a;
+  font-weight: 700;
 }
 
-#agreement-summary label {
-  font-size: 2em;
-  color: #4CAF50;
-  cursor: pointer;
-}
-
-#agreement-summary input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  margin-top: 5px;
-  margin-right: 10px;
-}
-
-.highlighted {
-  font-weight: bold;
-}
-
-/* ========== 8. モーダルウィンドウ ========== */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 1;
-  left: 0;
-  top: 0;
+/* サマリーテーブル用スタイル */
+.summary-table {
   width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.4);
+  border-collapse: collapse;
+  font-size: 0.95rem;
 }
-
-.modal-content {
-  background-color: #fefefe;
-  margin: 15% auto;
-  padding: 20px;
-  border: 1px solid #888;
-  width: 80%;
-  height: 80%;
-  overflow: auto;
-  font-size: 18px;
-}
-
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
+.summary-table th {
+  width: 38%;
+  text-align: left;
+  padding: 0.35rem 0.5rem;
+  color: #247345;
+  border-bottom: 1px dashed #d7e3db;
   font-weight: bold;
 }
-
-.close:hover,
-.close:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer;
+.summary-table td {
+  padding: 0.35rem 0.5rem;
+  color: #2f3438;
+  border-bottom: 1px dashed #d7e3db;
+}
+.summary-table tr:last-child th,
+.summary-table tr:last-child td {
+  border-bottom: none;
 }
 
-/* ========== 9. レスポンシブ対応 ========== */
-@media (min-width: 768px) {
-  #stylist-container {
-    flex-direction: row;
-    justify-content: space-between;
-  }
-
-  .stylist-card {
-    flex: 0 1 calc(33.33% - 15px);
-    max-width: 250px;
-  }
+/* 警告バナー アニメーション */
+.unconfirmed-banner {
+  animation: fuwafuwa 2s ease-in-out infinite alternate;
 }
 
-@media (max-width: 768px) {
-  #reservationSummary {
-    padding: 10px;
+@keyframes fuwafuwa {
+  0% {
+    transform: translateY(0);
+    box-shadow: 0 0.2rem 0.5rem rgba(0,0,0,0.05);
+  }
+  100% {
+    transform: translateY(-8px);
+    box-shadow: 0 0.5rem 0.8rem rgba(0,0,0,0.1);
   }
 }
-
-@media (max-width: 480px) {
-  .stylist-card {
-    flex: 0 1 calc(100% - 10px);
-    max-width: 100%;
-    margin: 5px 0;
-  }
-}
-
-@media screen and (max-width: 767px) {
-  .stylist-image img {
-    max-width: 80%;
-    margin: 0 auto;
-  }
-}
+/*# sourceMappingURL=main.css.map */
