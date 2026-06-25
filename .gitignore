@@ -1,0 +1,7 @@
+# Aivis Cloud TTS — local secrets (do NOT commit the API key)
+.claude/aivis_config.json
+.claude/settings.local.json
+
+# Python cache
+__pycache__/
+*.pyc
