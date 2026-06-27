@@ -1,0 +1,95 @@
+/* OASIS 3Dスクラブ デモ用スタイル */
+
+.scrub {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.scrub__lead {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #5f7265;
+}
+
+.scrub__stage {
+  border: 1px solid #d7e3db;
+  border-radius: 0.875rem;
+  background: #ffffff;
+  box-shadow: 0 0.5rem 1.375rem rgba(23, 52, 36, 0.08);
+  padding: 0.75rem;
+  overflow: hidden;
+}
+
+/* キャンバスを入れる枠。Three.js が中に <canvas> を挿入する */
+.scrub__canvas {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 0.625rem;
+  background: radial-gradient(circle at 50% 35%, #e9f5ee 0%, #d7ebde 60%, #c7e1d0 100%);
+  overflow: hidden;
+  touch-action: none; /* スマホでドラッグ回転を有効にする */
+  cursor: grab;
+}
+.scrub__canvas:active {
+  cursor: grabbing;
+}
+.scrub__canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.scrub__hint {
+  margin-top: 0.55rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #7a8a80;
+}
+
+.scrub__panel {
+  border: 1px solid #d7e3db;
+  border-radius: 0.875rem;
+  background: #ffffff;
+  box-shadow: 0 0.5rem 1.375rem rgba(23, 52, 36, 0.08);
+  padding: 1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.scrub__range {
+  width: 100%;
+  accent-color: #2f8f57;
+  height: 1.5rem;
+  cursor: pointer;
+}
+
+#scrubValue {
+  font-weight: 700;
+  color: #247345;
+}
+
+.scrub__buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-top: 0.2rem;
+}
+
+.scrub__back {
+  text-align: center;
+  margin-top: 0.3rem;
+}
+.scrub__back a {
+  color: #247345;
+  font-weight: 700;
+  text-decoration: none;
+}
+.scrub__back a:hover {
+  text-decoration: underline;
+}
+
+@media (min-width: 40rem) {
+  .scrub__canvas {
+    aspect-ratio: 16 / 9;
+  }
+}

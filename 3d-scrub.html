@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OASIS 3Dスクラブ デモ</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/scrub.css" />
+
+    <!-- Three.js をモジュールとして読み込む -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+
+  <body>
+    <section class="scrub">
+      <h1>OASIS 3Dスクラブ</h1>
+
+      <p class="scrub__lead">
+        ドラッグ（スマホは指でなぞる）で3Dオブジェクトをぐるぐる回せます。<br />
+        下のスライダーで「スクラブ」して回転を手動で動かすこともできます。
+      </p>
+
+      <div class="scrub__stage">
+        <div id="canvasWrap" class="scrub__canvas"></div>
+        <p class="scrub__hint">🖱️ ドラッグで回転 ／ ホイールでズーム</p>
+      </div>
+
+      <div class="scrub__panel">
+        <div class="input-wrapper">
+          <label for="shapeSelect" class="input-label">形状</label>
+          <select id="shapeSelect" class="input-select">
+            <option value="torusKnot">トーラスノット</option>
+            <option value="cube">立方体</option>
+            <option value="sphere">球</option>
+            <option value="torus">ドーナツ</option>
+          </select>
+        </div>
+
+        <div class="input-wrapper">
+          <label for="scrubRange" class="input-label">
+            スクラブ（回転位置）：<span id="scrubValue">0°</span>
+          </label>
+          <input type="range" id="scrubRange" class="scrub__range" min="0" max="360" value="0" />
+        </div>
+
+        <div class="scrub__buttons">
+          <button type="button" id="autoRotateBtn" class="btn">自動回転：ON</button>
+          <button type="button" id="resetBtn" class="btn btn-sub">視点をリセット</button>
+        </div>
+      </div>
+
+      <p class="scrub__back">
+        <a href="index.html">← 予約フォームへ戻る</a>
+      </p>
+    </section>
+
+    <script type="module" src="./js/scrub.js"></script>
+  </body>
+</html>
