@@ -1,5 +1,5 @@
 (function () {
-  const holidays = [];
+  const holidays = ["2026-08-19"];
 
   const specialWorkingDays = [];
   const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
