@@ -39,7 +39,7 @@
 
     <section id="new" class="notice mode-panel" style="display: none">
       <h2 class="notice__title">顧客情報の登録</h2>
-      <form id="customerForm">
+      <form id="customerForm" data-clarity-mask="true">
         <div class="input-wrapper">
           <label for="username" class="input-label">予約者名<span class="required">必須</span></label>
           <input type="text" id="username" name="username" class="input-field" placeholder="オアシス太郎" />
@@ -111,7 +111,7 @@
           ⚠ 予約はまだ確定していません！<br>内容を確認のうえ、一番下の「送信する」を押してください
         </div>
         <h2>予約内容の確認</h2>
-        <div id="summaryDetails"></div>
+        <div id="summaryDetails" data-clarity-mask="true"></div>
         <button type="button" id="editReservation" class="btn">内容を変更</button>
 
         <div id="agreement-summary">
