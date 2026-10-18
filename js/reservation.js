@@ -24,26 +24,36 @@
     };
   }
 
-  function buildSummaryHtml(data) {
-    let prefsHtml = data.preferences
-      .map((p, i) => `<tr><th>第${i + 1}希望</th><td>${p.date} ${p.time}</td></tr>`)
-      .join("");
+  function renderSummaryTable(container, data) {
+    const rows = [
+      ["予約者名", data.customer.username || "未登録"],
+      ["フリガナ", data.customer.furigana || "未登録"],
+      ["性別", data.customer.gender || "未登録"],
+      ["ステータス", data.customerStatus || "新規"],
+      ["電話番号", data.customer.phoneNumber || "未登録"],
+      ["メニュー", data.menu || "未入力"],
+      ["担当者", data.stylist || "未選択"],
+      ...data.preferences.map((p, i) => [`第${i + 1}希望`, `${p.date} ${p.time}`]),
+      ["備考", data.comments || "なし"],
+    ];
 
-    return `
-      <table class="summary-table">
-        <tbody>
-          <tr><th>予約者名</th><td>${data.customer.username || "未登録"}</td></tr>
-          <tr><th>フリガナ</th><td>${data.customer.furigana || "未登録"}</td></tr>
-          <tr><th>性別</th><td>${data.customer.gender || "未登録"}</td></tr>
-          <tr><th>ステータス</th><td>${data.customerStatus || "新規"}</td></tr>
-          <tr><th>電話番号</th><td>${data.customer.phoneNumber || "未登録"}</td></tr>
-          <tr><th>メニュー</th><td>${data.menu || "未入力"}</td></tr>
-          <tr><th>担当者</th><td>${data.stylist || "未選択"}</td></tr>
-          ${prefsHtml}
-          <tr><th>備考</th><td>${data.comments || "なし"}</td></tr>
-        </tbody>
-      </table>
-    `;
+    const table = document.createElement("table");
+    table.className = "summary-table";
+    const tbody = document.createElement("tbody");
+
+    rows.forEach(([label, value]) => {
+      const tr = document.createElement("tr");
+      const th = document.createElement("th");
+      const td = document.createElement("td");
+      th.textContent = label;
+      td.textContent = value;
+      tr.appendChild(th);
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    container.replaceChildren(table);
   }
 
   function buildLineMessage(data) {
@@ -134,7 +144,7 @@
       latestReservationData = collectReservationData();
 
       if (summaryDetails) {
-        summaryDetails.innerHTML = buildSummaryHtml(latestReservationData);
+        renderSummaryTable(summaryDetails, latestReservationData);
       }
 
       if (reservationForm) reservationForm.style.display = "none";
