@@ -128,6 +128,7 @@
         applySavedSelectionsForRepeat();
       }
       window.scrollTo({ top: 0, behavior: "smooth" });
+      window.OasisAnalytics?.trackFormOpen();
     }
 
     showOnly(sectionIds, "select");
