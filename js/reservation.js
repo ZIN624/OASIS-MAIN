@@ -184,8 +184,15 @@
         .then(() => {
           alert("予約内容を送信しました。");
           setSummaryHintVisible(false);
-          if (typeof liff.closeWindow === "function") {
-            liff.closeWindow();
+          const closeForm = () => {
+            if (typeof liff.closeWindow === "function") {
+              liff.closeWindow();
+            }
+          };
+          if (window.OasisAnalytics?.trackInquiry) {
+            window.OasisAnalytics.trackInquiry(closeForm);
+          } else {
+            closeForm();
           }
         })
         .catch((error) => {
