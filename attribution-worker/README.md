@@ -91,12 +91,12 @@ Google Ads API の `UploadClickConversions` は、2026-06-15 以降、過去に�
 
 - **1リクエスト1件で送る**。結果が理由ごとの件数でしか返らないため、行ごとの成否を確実に知るには1件ずつが確実です。
   本店の件数（1日数件）なら上限に遠く届きません
-- 送る中身は `gclid`（無ければ `gbraid`、それも無ければ `wbraid`）・`eventTimestamp`（日本時間の RFC 3339）・
+- 送る中身は識別子1つ（`gclid`。無ければ `gbraid`、それも無ければ `wbraid`。gclid と braid を一緒に入れない）・`eventTimestamp`（日本時間の RFC 3339）・
   `transactionId`（= inquiry_id）・`eventSource: WEB`・`consent.adUserData: CONSENT_GRANTED` だけ。
   **氏名・電話番号・メール（`userData`）は送りません**。金額（`conversionValue`）も送りません（アクションの既定値が使われる）
 - 状態: `pending` → 送る → `submitted`（requestId を保存）→ 30分後から確認 → `uploaded` / `duplicate` / `failed`
   - 処理中なら確認の間隔を 1→2→4→8 時間と広げ、26時間たっても終わらなければ同じ transactionId で送り直す
-  - 重複（`DUPLICATE_TRANSACTION_ID` / `DUPLICATE_GCLID`）は「Google がもう数えている」として `duplicate`
+  - 重複は `duplicate`。**`uploaded`（この送信が取り込まれた）とは別に数え、`uploaded_at` も付けません**（下の「重複の扱い」）
   - あとで送り直す理由（`TOO_RECENT_CLICK` 12時間・`DESTINATION_TOO_RECENTLY_CREATED` 24時間・`INTERNAL_ERROR` 6時間）は `retry`
   - それ以外（クリックが見つからない・期限切れ・同意なし など）は `failed`
 - 送った回数は最大6回。届いたか分からないときは同じ transactionId で送り直す（Google 側で重複として弾かれる）
@@ -105,7 +105,58 @@ Google Ads API の `UploadClickConversions` は、2026-06-15 以降、過去に�
 - クリックから6時間たつまでは送りません（直後は Google がまだクリックを処理していないため）
 - 認証はサービスアカウントの鍵（`GOOGLE_SA_KEY_JSON`）で JWT を署名してトークンを取ります。
   鍵・JWT・トークンはログ・DB・エラー文に出しません。鍵に別のトークン発行先が書かれていたら使いません
-- `DM_VALIDATE_ONLY=true`（既定）のあいだは `validateOnly` で送り、取り込ませません
+- `DM_VALIDATE_ONLY=true`（既定）のあいだは `validateOnly` で送り、取り込ませません（分かる範囲は下の「validateOnly で分かること」）
+- 応答の `fieldWarnings`（任意の項目が受け付けられなかった）は件数を診断に残します（`upload_field_warning`）
+
+### 送る項目の確認（公式 RPC リファレンス・2026-10-21）
+
+| 項目 | 送る値 | 公式の定義 | 判断 |
+|---|---|---|---|
+| `destinations[].operatingAccount` | `{accountType: GOOGLE_ADS, accountId: 本店の10桁}` | Required。データを送る先のアカウント | ✅ |
+| `destinations[].loginAccount` | 管理アカウント経由のときだけ | Optional。operatingAccount に書き込める権限が要る | ✅ 本店に直接追加するなら空 |
+| `destinations[].productDestinationId` | 新しいコンバージョンアクションのID | 「Google Ads conversion action ID」。種類は UPLOAD_CLICKS | ✅ |
+| `events[].adIdentifiers` | gclid / gbraid / wbraid のどれか1つ | gbraid は iOS のアプリ由来、wbraid は iOS のウェブ由来のクリック | ✅ |
+| `events[].eventTimestamp` | 予約希望を送った時刻（日本時間・RFC 3339） | Required。イベントが起きた時刻 | ✅ クリックより後（そうでなければ `CONVERSION_PRECEDES_CLICK`） |
+| `events[].transactionId` | inquiry_id（UUID） | Optional。イベントの一意なID | ✅ 重複防止に使う |
+| `events[].eventSource` | `WEB` | Optional。WEB / APP / IN_STORE / PHONE / MESSAGE / OTHER | ⚠️ フォームはウェブページなので WEB。LINE のメッセージとして `MESSAGE` にする考え方もある（どちらが望ましいか公式の指定なし） |
+| `events[].consent.adUserData` | `CONSENT_GRANTED`（入口ページで同意した人だけ） | Optional。DMA（欧州のデジタル市場法）の同意。行の同意は、リクエスト全体の同意より優先 | ✅ 日本の利用者に必須かは公式に記載なし |
+| `events[].consent.adPersonalization` | 送らない | Optional | ✅ 聞いていないので送らない |
+| `conversionValue` / `currency` | 送らない | Optional | ✅ アクションの既定値を使う |
+| `userData` / `encoding` | 送らない | 氏名・電話・メール用 | ✅ 送らない（encoding は userData が無いと無視される） |
+| `validateOnly` | 既定 true | 「検証だけして実行しない。エラーだけが返り、結果は返らない」 | ✅ |
+
+### 重複の扱い（取り込まれた、と混同しない）
+
+| 状態・理由 | 公式の意味 | この送信は計上されたか | 扱い |
+|---|---|---|---|
+| `uploaded`（SUCCESS） | 取り込みが成功した | **された** | 唯一の「成果として送れた」状態 |
+| `duplicate`・`DUPLICATE_TRANSACTION_ID` | 同じ order id とコンバージョンアクションの組が**すでに送られている** | **されていない**（以前の送信がある） | このコードでは、結果が分からず同じ inquiry_id を送り直したときにだけ起きる |
+| `duplicate`・`DUPLICATE_GCLID` | 同じ GCLID と**コンバージョン時刻**のものが**すでにある** | **されていない** | 同じクリックの2件目はこちらで送らないので、起きるのは同じ inquiry の送り直しのときだけのはず。**それ以外で出たら要確認**（別の仕組みが同じクリックを送っている など） |
+| `suppressed_duplicate` | （こちらの判断）同じ広告クリックの2件目 | 送っていない | 記録だけ |
+
+- 「すでにある」ものが実際に Google 広告の数字に入っているかは、**この送信からは確かめられません**。
+  確かめるには、最初の送信の結果（requestId）か Google 広告の画面を見ます
+- 診断API（`totals.uploads`・`upload_errors`）で、`uploaded` と `duplicate` は別々の件数、`duplicate` は理由ごとの件数で出ます
+
+### validateOnly で分かること・分からないこと
+
+公式: 「検証だけして実行しない。エラーだけが返り、結果は返らない」「取り込まずに fast-fail のエラーを確かめる」
+「validateOnly のリクエストは、あとから結果（diagnostics）を取れない」。
+
+| | validateOnly で分かる | 実際に取り込むまで分からない |
+|---|---|---|
+| 項目の形・必須項目・値の形式 | ✅ | |
+| アクセストークン・API の有効化 | ✅（403・401 が返る） | |
+| 送信先のアカウント・アクションへの権限、アクションの存在 | ⚠️ **公式に記載なし（未確認）**。検証で弾かれる可能性が高いが保証はない | ✅ |
+| クリックが見つかるか・本店のアカウントのクリックか | | ✅ `CLICK_NOT_FOUND`・`INVALID_OPERATING_ACCOUNT_FOR_CLICK` |
+| クリックの古さ・アクションの計測期間 | | ✅ `EXPIRED_CLICK`・`EVENT_TOO_OLD` |
+| クリックの直後すぎないか | | ✅ `TOO_RECENT_CLICK` |
+| 同意の判定（アカウントの設定を含む） | | ✅ `NO_CONSENT`・`UNKNOWN_CONSENT`・`DENIED_CONSENT` |
+| 重複 | | ✅ `DUPLICATE_*` |
+| 「1回」のアクションと braid | | ✅ `ONE_PER_CLICK_CONVERSION_ACTION_NOT_PERMITTED_WITH_BRAID` |
+
+**validateOnly が通っても「取り込まれる」ことの保証にはなりません。** 最初の実データは承認を得て1件だけ送り、
+requestStatus で `SUCCESS` を確かめ、Google 広告の画面（コンバージョン → 診断）でも確かめます。
 
 ### 同じ広告クリックにつき1件（もとは「同じ人は24時間に1件」）
 
@@ -122,9 +173,20 @@ Google Ads API の `UploadClickConversions` は、2026-06-15 以降、過去に�
 いまは「同じ広告クリック（同じ ad_ref、または同じ gclid / gbraid / wbraid）から送るのは1件」です。
 これは Google 広告の「カウント: 1回」と同じ考え方です。
 
-- ⚠️ `gbraid` / `wbraid` は「1回」のコンバージョンアクションでは受け付けられない可能性があります
-  （エラー理由に `ONE_PER_CLICK_CONVERSION_ACTION_NOT_PERMITTED_WITH_BRAID` がある。**名前からの推定で未確認**）。
-  その場合はアクションを「すべて」にし、1クリック1件はこのコードで守ります
+### 「カウント: 1回」と gclid・gbraid・wbraid（公式で確認）
+
+公式 RPC リファレンスの `PROCESSING_ERROR_REASON_ONE_PER_CLICK_CONVERSION_ACTION_NOT_PERMITTED_WITH_BRAID` に
+「**One-per-click conversion actions cannot be used with BRAIDs.**」（1回のアクションは BRAID と一緒に使えない）とあります。
+
+| 識別子 | 「1回」 | 「すべて」 | このコード |
+|---|---|---|---|
+| gclid | ✅ | ✅ | 最優先で送る |
+| gbraid（iOS アプリ由来） | ❌ 取り込まれない | ✅ | gclid が無いときだけ送る |
+| wbraid（iOS ウェブ由来） | ❌ 取り込まれない | ✅ | gclid・gbraid が無いときだけ送る |
+
+**推奨: コンバージョンアクションのカウントは「すべて」。** 1クリック1件はこのコードが守ります（上の表）。
+「1回」にした場合、gbraid / wbraid だけのクリックは `failed`（理由は上のエラー）になり、Google には数えられません。
+また、アクションの「クリック後の計測期間」は **90日** にしてください。短いと、その日数を過ぎた予約希望が `EXPIRED_CLICK` になります。
 - 別の広告クリックから来た2件目は送ります。同じ人でも、新しく広告をクリックしたのは事実だからです
 
 ### LINE への到達の確かめ方（いまの方式と、将来の Webhook 方式）
@@ -149,6 +211,53 @@ Google Ads API の `UploadClickConversions` は、2026-06-15 以降、過去に�
 - 保存: Data Manager の requestId は個人の情報ではないので13か月残します。送信中（`submitted`）の行はクリックが90日で消えても結果を確かめられます
 - プライバシーポリシーの文案は「Data Manager API」を前提に更新済み（別のドキュメント）
 
+## サービスアカウント（権限・鍵・入れ替え・復旧）
+
+**なぜサービスアカウントか**: 利用者の OAuth（リフレッシュトークン）だと、Data Manager API のスコープでは
+「いずれ Google の OAuth 審査が必要」と公式にあります（サービスアカウントは不要）。Cloudflare Workers からは
+鍵を使わない方式（なりすまし・Workload Identity）が使えないため、**鍵を1本だけ Cloudflare の Secret に置く**形にしています。
+公式も「鍵は管理を誤ると危険」と書いているので、下の運用を守ります。
+
+### 権限（最小にする）
+
+| どこ | 付けるもの | 根拠 |
+|---|---|---|
+| Google Cloud（本店用プロジェクト） | Data Manager API を有効化。サービスアカウントに `roles/serviceusage.serviceUsageConsumer` だけ | [Set up API access](https://developers.google.com/data-manager/api/devguides/quickstart/set-up-access) |
+| Google 広告 265-068-2623 | 管理 → アクセスとセキュリティ → ユーザー → サービスアカウントのメールを追加。**標準**（Standard） | 追加の手順と「メールのみは不可・管理者は既定で付けられない」は [Google Ads API の公式](https://developers.google.com/google-ads/api/docs/oauth/service-accounts)。コンバージョンの取り込みに「標準」で足りるかは**未確認**（第三者の資料は標準。足りなければ管理者に上げる） |
+| それ以外 | 何も付けない（SalonOS のプロジェクト・他店の広告アカウントには追加しない） | 本店とPLUSを混ぜない |
+
+### 鍵の置き場所
+
+- 鍵（JSON）は **Cloudflare の Secret `GOOGLE_SA_KEY_JSON` だけ**。リポジトリ・PR・チャット・メール・Google ドライブに置かない
+- ダウンロードした鍵のファイルは、Secret に入れたらすぐ手元から消す
+- Worker は鍵の `token_uri` が Google の正規のもの以外なら使わない（署名を別のサーバへ送らない）。鍵・JWT・トークンはログに出さない
+
+### 入れ替え（90日ごとを目安。人が入れ替わったとき・漏れた疑いがあるときはすぐ）
+
+1. Google Cloud → IAM → サービスアカウント → 鍵 → **新しい鍵を作る**（古い鍵はまだ消さない）
+2. `npx wrangler secret put GOOGLE_SA_KEY_JSON --env production` に新しい鍵を入れる（入れた時点で次の実行から使われる）
+3. 次の定期実行（毎時5分）のあと、診断APIで `upload_auth_error` が増えていないことを見る
+4. Google Cloud で**古い鍵を削除**する
+5. 手元の鍵のファイルを消す
+
+### 漏れた疑いがあるとき
+
+1. まず `UPLOAD_ENABLED=false` にしてデプロイ（送信を止める。予約の受付は止まらない）
+2. Google Cloud で**その鍵を削除**（削除した鍵ではトークンが取れなくなる）
+3. Google 広告の「変更履歴」とコンバージョンの数字に、身に覚えのない取り込みが無いか見る
+4. 上の「入れ替え」の1〜2で新しい鍵を入れ、`UPLOAD_ENABLED=true` に戻す
+
+### 権限が外れた・API が止まったときの復旧
+
+| 症状（診断API） | よくある原因 | 直し方 |
+|---|---|---|
+| `upload_auth_error`（`token_invalid_grant` など） | 鍵が削除・無効化された | 新しい鍵を作って Secret に入れる |
+| `upload_auth_error`（`PERMISSION_DENIED` / `http_403`） | Google 広告からサービスアカウントが外れた・API が無効・ロールが外れた | 広告アカウントに再追加・API を有効化・ロールを付け直す |
+| `upload_config_error` | アカウントID・アクションIDの誤り、アクションの削除 | `DM_*` の値を直す |
+
+- 認証・設定の失敗のあいだは、**行の送信回数を数えずに止まる**ので、直せば次の実行から続きを送ります
+- ただし**クリックから90日（余裕12時間）を過ぎた分は送れません**。止まったまま放置しないよう、週に1回は診断APIを見ます
+
 ## 導入の順番（すべて承認後）
 
 1. **LINE Developers（オーナー）**: 予約フォームの LIFF（`2006621786-8K7V4W3M`）と**同じ LINE ログインチャネル**に、
@@ -160,9 +269,10 @@ Google Ads API の `UploadClickConversions` は、2026-06-15 以降、過去に�
 3. 秘密の値: `openssl rand -base64 48 | npx wrangler secret put ATTR_ROOT_KEY --env staging`、
    同じく `ADMIN_TOKEN`。**リポジトリ・PR・チャットに書かない**
 3b. **Google（オーナー・承認後）**: 本店用の Google Cloud プロジェクトで Data Manager API を有効化 →
-   サービスアカウントを作って鍵（JSON）を発行 → Google 広告 265-068-2623 の「管理 → アクセスとセキュリティ」に
-   そのサービスアカウントのメールを追加 → 新しいコンバージョンアクション「OASIS本店｜LINE予約希望（オフライン）」を
-   **種類: クリックからのインポート・副次**で作る（カウントは上の「同じ広告クリックにつき1件」を参照）。
+   サービスアカウントを作り `roles/serviceusage.serviceUsageConsumer` を付けて鍵（JSON）を発行 →
+   Google 広告 265-068-2623 の「管理 → アクセスとセキュリティ」にそのサービスアカウントのメールを「標準」で追加 →
+   新しいコンバージョンアクション「OASIS本店｜LINE予約希望（オフライン）」を
+   **種類: クリックからのインポート・副次・カウント「すべて」・クリック後の計測期間 90日**で作る（理由は上の表）。
    鍵は `npx wrangler secret put GOOGLE_SA_KEY_JSON --env staging` で入れ、手元から消す
 4. `wrangler.jsonc` の `LINE_CHANNEL_IDS` にチャネルID（10桁）を入れる
 5. `npx wrangler deploy --env staging`（`AD_ATTR_ENABLED` は `false` のまま）→ 診断APIで動作確認
@@ -176,12 +286,15 @@ Google Ads API の `UploadClickConversions` は、2026-06-15 以降、過去に�
 
 ## 確認（本番の前に）
 
+LINE の実機での確認は、オーナーが順番に操作できる手順書にしてあります → [`docs/line-device-test.md`](docs/line-device-test.md)
+
 - 広告のURL（`?gclid=テスト値`）で本店ページを開く → LINE ボタンが `liff.line.me/…?ad_ref=…` になる
 - 入口ページ → 同意 → 友だち追加 → トークのメニューから予約希望を送る → 診断APIで `ad_same_day` が1件
 - 広告を通らずにリッチメニューから送る → `none` が1件、送信待ちは増えない
 - 停止スイッチ（`AD_ATTR_ENABLED=false`）で、Wix のボタンがいつもの LINE リンクのままになる
 - 数日後に送った予約希望が `ad_delayed` になる（**LINE の実機でしか確かめられない**: 同じチャネルでIDが一致すること）
-- validateOnly で送信先の設定が正しいこと（`upload_config_error` が出ない）。実データの取り込みは承認後
+- validateOnly で形・認証のエラーが出ないこと（`upload_config_error`・`upload_auth_error` が出ない）。
+  **これで分かるのは形と認証まで**（上の「validateOnly で分かること」）。実データの取り込みは承認後に1件から
 
 ## 止め方・戻し方
 
@@ -207,6 +320,6 @@ Google Ads API の `UploadClickConversions` は、2026-06-15 以降、過去に�
 ```bash
 npm ci
 npm run typecheck
-npm test        # Workers 実行環境（miniflare）＋ D1 で 78 件
+npm test        # Workers 実行環境（miniflare）＋ D1 で 80 件
 npm run build   # wrangler deploy --dry-run（どこにも送らない）
 ```

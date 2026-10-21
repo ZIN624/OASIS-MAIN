@@ -27,7 +27,7 @@ function fakeSender(opts: {
   const sender: ConversionSender = {
     async submit(e) {
       submitted.push(e);
-      return opts.submit ? opts.submit(e, submitted.length) : { kind: "accepted", requestId: `req-${submitted.length}` };
+      return opts.submit ? opts.submit(e, submitted.length) : { kind: "accepted", requestId: `req-${submitted.length}`, warnings: 0 };
     },
     async status(id) {
       checked.push(id);
@@ -208,7 +208,7 @@ describe("Google 広告への送信（2段階：送る → 結果を確かめる
   it("validateOnly（確かめるだけ）の結果は取り込み扱いにせず、1日あけてまた確かめる", async () => {
     const h = new Harness();
     const [id] = await pendingInquiries(h, 1);
-    const f = fakeSender({ submit: () => ({ kind: "validated" }) });
+    const f = fakeSender({ submit: () => ({ kind: "validated", warnings: 0 }) });
     const r = await pass(h, f.sender);
     expect(r.validated).toBe(1);
     expect(await row(id)).toMatchObject({ status: "pending", attempts: 0, last_error_code: "validated_only" });
@@ -216,6 +216,40 @@ describe("Google 広告への送信（2段階：送る → 結果を確かめる
     expect(f.submitted).toHaveLength(1);
     await pass(h, f.sender, 25 * HOUR);
     expect(f.submitted).toHaveLength(2);
+  });
+
+  it("任意の項目が受け付けられなかった（fieldWarnings）ことを記録する", async () => {
+    const h = new Harness();
+    const ids = await pendingInquiries(h, 2);
+    const f = fakeSender({
+      submit: (_e, n) => (n === 1 ? { kind: "accepted", requestId: "req-w", warnings: 1 } : { kind: "validated", warnings: 2 }),
+    });
+    await pass(h, f.sender);
+    expect(await row(ids[0])).toMatchObject({ status: "submitted", last_error_code: "field_warnings" });
+    expect(await row(ids[1])).toMatchObject({ status: "pending", last_error_code: "validated_with_field_warnings" });
+    const [d] = await rows<{ count: number }>(`SELECT count FROM diag_counters WHERE code = 'upload_field_warning'`);
+    expect(d.count).toBe(2);
+  });
+
+  it("「重複」は「取り込まれた」と別に数える（この送信では計上されていない）", async () => {
+    const h = new Harness();
+    const ids = await pendingInquiries(h, 3);
+    const outcomes: StatusResult[] = [
+      { kind: "success" },
+      { kind: "duplicate", code: "PROCESSING_ERROR_REASON_DUPLICATE_TRANSACTION_ID" },
+      { kind: "duplicate", code: "PROCESSING_ERROR_REASON_DUPLICATE_GCLID" },
+    ];
+    const f = fakeSender({ status: (_id, n) => outcomes[n - 1] });
+    await pass(h, f.sender);
+    await pass(h, f.sender, 31 * 60_000);
+    const byStatus = await rows<{ status: string; last_error_code: string | null; uploaded_at: string | null }>(
+      `SELECT status, last_error_code, uploaded_at FROM conversion_uploads ORDER BY created_at`,
+    );
+    expect(byStatus.map((r) => r.status)).toEqual(["uploaded", "duplicate", "duplicate"]);
+    // 重複には「取り込まれた時刻」を付けない。理由は別々に残る。
+    expect(byStatus[1]).toMatchObject({ uploaded_at: null, last_error_code: "PROCESSING_ERROR_REASON_DUPLICATE_TRANSACTION_ID" });
+    expect(byStatus[2]).toMatchObject({ uploaded_at: null, last_error_code: "PROCESSING_ERROR_REASON_DUPLICATE_GCLID" });
+    expect(ids).toHaveLength(3);
   });
 
   it("締め切り（クリックから90日・余裕12時間）を過ぎたものは送らない", async () => {

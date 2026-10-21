@@ -46,10 +46,10 @@ describe("リクエストの中身（events:ingest・1件）", () => {
     });
   });
 
-  it("gclid と gbraid があれば両方、gclid が無ければ gbraid、どちらも無ければ wbraid", () => {
+  it("識別子は1つだけ: gclid が最優先（braid を足さない）、無ければ gbraid、それも無ければ wbraid", () => {
     const ids = (e: Partial<ConversionEvent>) =>
       (buildIngestRequest(CFG, { ...EVENT, ...e }).events as { adIdentifiers: unknown }[])[0].adIdentifiers;
-    expect(ids({ gbraid: "gb_123456789012345678" })).toEqual({ gclid: EVENT.gclid, gbraid: "gb_123456789012345678" });
+    expect(ids({ gbraid: "gb_123456789012345678", wbraid: "wb_123456789012345678" })).toEqual({ gclid: EVENT.gclid });
     expect(ids({ gclid: null, gbraid: "gb_123456789012345678", wbraid: "wb_123456789012345678" })).toEqual({ gbraid: "gb_123456789012345678" });
     expect(ids({ gclid: null, wbraid: "wb_123456789012345678" })).toEqual({ wbraid: "wb_123456789012345678" });
   });
@@ -68,8 +68,13 @@ describe("リクエストの中身（events:ingest・1件）", () => {
 
 describe("events:ingest の応答の分類", () => {
   it("200 + requestId は受付。validateOnly のときは「確かめただけ」", () => {
-    expect(classifyIngestResponse(200, { requestId: "126365e1-16d0" }, false)).toEqual({ kind: "accepted", requestId: "126365e1-16d0" });
-    expect(classifyIngestResponse(200, {}, true)).toEqual({ kind: "validated" });
+    expect(classifyIngestResponse(200, { requestId: "126365e1-16d0" }, false)).toEqual({ kind: "accepted", requestId: "126365e1-16d0", warnings: 0 });
+    expect(classifyIngestResponse(200, {}, true)).toEqual({ kind: "validated", warnings: 0 });
+    expect(classifyIngestResponse(200, { requestId: "r", fieldWarnings: [{ fieldPath: "events[0].event_source", reason: "x" }] }, false)).toEqual({
+      kind: "accepted",
+      requestId: "r",
+      warnings: 1,
+    });
     expect(classifyIngestResponse(200, {}, false).kind).toBe("transient");
   });
 
@@ -193,7 +198,7 @@ describe("Data Manager API の送り手（サービスアカウント）", () =>
     const sa = await makeServiceAccount();
     const g = fakeGoogle(sa.publicKey);
     const sender = createDataManagerSender(CFG, sa.json, g.fetchImpl, () => 1_800_000_000)!;
-    expect(await sender.submit(EVENT)).toEqual({ kind: "accepted", requestId: "req-abc" });
+    expect(await sender.submit(EVENT)).toEqual({ kind: "accepted", requestId: "req-abc", warnings: 0 });
     expect(await sender.status("req-abc")).toEqual({ kind: "success" });
     expect(g.calls.map((c) => c.url)).toEqual([
       GOOGLE_TOKEN_URL,
@@ -230,7 +235,7 @@ describe("Data Manager API の送り手（サービスアカウント）", () =>
     const sa = await makeServiceAccount();
     const g = fakeGoogle(sa.publicKey);
     const sender = createDataManagerSender({ ...CFG, validateOnly: true }, sa.json, g.fetchImpl, () => 1_800_000_000)!;
-    expect(await sender.submit(EVENT)).toEqual({ kind: "validated" });
+    expect(await sender.submit(EVENT)).toEqual({ kind: "validated", warnings: 0 });
     expect(JSON.parse(String(g.calls[1].init.body)).validateOnly).toBe(true);
   });
 

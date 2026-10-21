@@ -21,10 +21,12 @@ const REQUEST_TIMEOUT_MS = 20_000;
 /** 1件分のリクエスト本文。テストでそのまま中身を確かめる。 */
 export function buildIngestRequest(cfg: DataManagerConfig, event: ConversionEvent): Record<string, unknown> {
   const adIdentifiers: Record<string, string> = {};
-  // gclid があればそれを使う（gbraid もあれば両方）。どちらも無いときだけ wbraid。
+  // 1件に入れる識別子は1つだけ。gclid を最優先し、無いときだけ gbraid、それも無いときだけ wbraid。
+  // gbraid / wbraid は「カウント: 1回」のアクションでは使えない（PROCESSING_ERROR_REASON_ONE_PER_CLICK_
+  // CONVERSION_ACTION_NOT_PERMITTED_WITH_BRAID・公式 RPC リファレンス）。gclid があるときに braid を足して
+  // その制限に触れないよう、gclid と一緒には送らない。
   if (event.gclid) {
     adIdentifiers.gclid = event.gclid;
-    if (event.gbraid) adIdentifiers.gbraid = event.gbraid;
   } else if (event.gbraid) {
     adIdentifiers.gbraid = event.gbraid;
   } else if (event.wbraid) {
@@ -60,11 +62,13 @@ interface GoogleError {
 
 /** events:ingest の応答を分類する（相手の文は残さない）。 */
 export function classifyIngestResponse(status: number, body: unknown, validateOnly: boolean): SubmitResult {
-  const b = (body ?? {}) as { requestId?: unknown; error?: GoogleError };
+  const b = (body ?? {}) as { requestId?: unknown; fieldWarnings?: unknown; error?: GoogleError };
   if (status === 200) {
-    if (validateOnly) return { kind: "validated" };
+    // 任意の項目が受け付けられなかったときに入る（中身の文は残さず、件数だけ見る）。
+    const warnings = Array.isArray(b.fieldWarnings) ? b.fieldWarnings.length : 0;
+    if (validateOnly) return { kind: "validated", warnings };
     return typeof b.requestId === "string" && b.requestId.length > 0 && b.requestId.length <= 200
-      ? { kind: "accepted", requestId: b.requestId }
+      ? { kind: "accepted", requestId: b.requestId, warnings }
       : { kind: "transient", code: "bad_response" };
   }
   const err = b.error ?? {};

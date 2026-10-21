@@ -62,6 +62,7 @@ export type DiagCode =
   | "upload_config_error"
   | "upload_submitted"
   | "upload_validated"
+  | "upload_field_warning"
   | "upload_row_duplicate"
   | "upload_transient_error"
   | "upload_row_ok"

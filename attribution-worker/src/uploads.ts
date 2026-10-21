@@ -29,9 +29,10 @@ export interface ConversionEvent {
 export type CallError = { kind: "auth_error" | "transient"; code: string };
 
 export type SubmitResult =
-  | { kind: "accepted"; requestId: string }
+  /** warnings: 任意の項目が受け付けられなかった数（fieldWarnings） */
+  | { kind: "accepted"; requestId: string; warnings: number }
   /** validateOnly のとき。取り込まれていない。 */
-  | { kind: "validated" }
+  | { kind: "validated"; warnings: number }
   /** この1件の中身が受け付けられない（直すまで送らない） */
   | { kind: "rejected"; code: string }
   /** 送信先の設定（アカウント・コンバージョンアクション）の問題。全体を止める */
@@ -257,10 +258,16 @@ export async function runUploadPass(
       await set(row.inquiry_id, { last_error_code: safeCode(r.code) });
       return { ...report, skipped: r.kind };
     }
+    if ((r.kind === "validated" || r.kind === "accepted") && r.warnings > 0) {
+      await countDiag(db, "upload_field_warning", nowIso);
+    }
     if (r.kind === "validated") {
       // 確かめるだけのモード。取り込まれていないので、状態は変えずに1日あける。
       report.validated += 1;
-      await set(row.inquiry_id, { next_attempt_at: addHours(nowIso, 24), last_error_code: "validated_only" });
+      await set(row.inquiry_id, {
+        next_attempt_at: addHours(nowIso, 24),
+        last_error_code: r.warnings > 0 ? "validated_with_field_warnings" : "validated_only",
+      });
       continue;
     }
     const attempts = row.attempts + 1;
@@ -273,7 +280,7 @@ export async function runUploadPass(
         submitted_at: nowIso,
         status_checks: 0,
         next_attempt_at: addHours(nowIso, FIRST_STATUS_CHECK_MIN / 60),
-        last_error_code: null,
+        last_error_code: r.warnings > 0 ? "field_warnings" : null,
       });
     } else if (r.kind === "rejected" || attempts >= MAX_ATTEMPTS) {
       report.failed += 1;
