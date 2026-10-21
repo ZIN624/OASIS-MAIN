@@ -109,7 +109,14 @@
 
 ### 3-2. テスト用ページの写しで書き換えるもの
 
-本番のファイルは変えず、**写しだけ**を書き換えます。
+本番のファイルは変えず、**写しだけ**を書き換えます。`scripts/build-staging-site.mjs` が次の4つを行い、
+本番の LIFF ID・解析タグが残っていないことを確かめてから写しを作ります（本番の LIFF ID や本番の Worker を指定すると止まる）。
+
+```bash
+node attribution-worker/scripts/build-staging-site.mjs --out dist-staging-site \
+  --form-liff <STG-フォームの LIFF ID> --entry-liff <STG-入口の LIFF ID> \
+  --endpoint https://oasis-honten-attribution-staging.<workers.dev のサブドメイン>.workers.dev
+```
 
 1. `js/liff-init.js` の LIFF ID → 「STG-フォーム」の LIFF ID
 2. `js/attribution-config.js` の `endpoint` → ステージングの Worker の URL、`entryLiffId` → 「STG-入口」の LIFF ID
@@ -143,8 +150,12 @@
 
 | 名前 | エンドポイントURL | Scope | 友だち追加オプション | サイズ |
 |---|---|---|---|---|
-| STG-入口 | テスト用ページ + `entry.html` | `openid` | On | Full |
-| STG-フォーム | テスト用ページ + `index.html` | 本番のフォームと**同じ**（1-1 で控えたもの） | 本番と同じ | 本番と同じ |
+| STG-入口 | テスト用ページ + `entry`（**`.html` を付けない**） | `openid` | On | Full |
+| STG-フォーム | テスト用ページ + `/`（末尾のスラッシュまで） | 本番のフォームと**同じ**（1-1 で控えたもの） | 本番と同じ | 本番と同じ |
+
+> Cloudflare Pages は `entry.html` を `entry` へ自動で転送します。LIFF に `entry.html` で登録すると、
+> パソコンからのログインの戻り先が登録した URL と一致せず失敗します（LIFF は「戻り先がエンドポイントURLで始まること」を確かめる）。
+> テスト用ページを Cloudflare Pages 以外に出すときは、そこでの URL に合わせます。
 
 - [ ] STG-入口 の LIFF ID: ______________
 - [ ] STG-フォーム の LIFF ID: ______________
