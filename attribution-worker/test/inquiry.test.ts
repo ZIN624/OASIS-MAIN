@@ -82,18 +82,57 @@ describe("POST /v1/inquiry（LINE 送信が成功したあと）", () => {
     expect(await rows(`SELECT * FROM conversion_uploads`)).toHaveLength(1);
   });
 
-  it("同じ人の2件目（24時間以内）は記録するが、送信はしない", async () => {
+  it("同じ広告クリックからの2件目は記録するが、送信はしない（何日あとでも）", async () => {
     const h = new Harness();
     const u = await h.adUser();
     const first = await h.inquiry(u.session);
     h.advanceHours(1);
     const second = await h.inquiry(u.session);
-    expect((await upload(first.inquiryId)).status).toBe("pending");
-    expect((await upload(second.inquiryId)).status).toBe("suppressed_duplicate");
-    h.advanceHours(30);
+    h.advanceHours(24 * 5);
     const s = await h.session(USER_A);
     const third = await h.inquiry(s.body.session);
-    expect((await upload(third.inquiryId)).status).toBe("pending");
+    expect((await upload(first.inquiryId)).status).toBe("pending");
+    expect((await upload(second.inquiryId)).status).toBe("suppressed_duplicate");
+    expect((await upload(third.inquiryId)).status).toBe("suppressed_duplicate");
+    // 記録（件数）は3件とも残る。
+    expect(await rows(`SELECT * FROM inquiries WHERE attribution <> 'none'`)).toHaveLength(3);
+  });
+
+  it("同じ人でも、別の広告クリックから来た予約希望はそれぞれ送る（同じ日でも少なく数えない）", async () => {
+    const h = new Harness();
+    const a = await h.adClick({ gclid: "Cj0KCQjw-first_click_ABCDEFGHIJKLMNOP" });
+    await h.bind(a.body.ad_ref);
+    const s = (await h.session()).body.session;
+    const first = await h.inquiry(s);
+    h.advanceHours(3);
+    const b = await h.adClick({ gclid: "Cj0KCQjw-second_click_ABCDEFGHIJKLMNO" });
+    await h.bind(b.body.ad_ref);
+    const second = await h.inquiry(s);
+    expect((await upload(first.inquiryId)).status).toBe("pending");
+    expect((await upload(second.inquiryId)).status).toBe("pending");
+  });
+
+  it("同じ gclid が別の ad_ref で登録されていても（再読み込み）、同じクリックとして1件だけ送る", async () => {
+    const h = new Harness();
+    const a = await h.adClick();
+    await h.bind(a.body.ad_ref);
+    const s = (await h.session()).body.session;
+    const first = await h.inquiry(s);
+    h.advanceHours(1);
+    const again = await h.adClick();
+    await h.bind(again.body.ad_ref);
+    const second = await h.inquiry(s);
+    expect((await upload(first.inquiryId)).status).toBe("pending");
+    expect((await upload(second.inquiryId)).status).toBe("suppressed_duplicate");
+  });
+
+  it("送信の予定はクリックの6時間後から（それより前には送らない）", async () => {
+    const h = new Harness();
+    const u = await h.adUser();
+    const { inquiryId } = await h.inquiry(u.session);
+    const [row] = await rows<{ next_attempt_at: string }>(`SELECT next_attempt_at FROM conversion_uploads WHERE inquiry_id = ?1`, inquiryId);
+    const [click] = await rows<{ first_seen_at: string }>(`SELECT first_seen_at FROM ad_clicks`);
+    expect(Date.parse(row.next_attempt_at) - Date.parse(click.first_seen_at)).toBe(6 * 3_600_000);
   });
 
   it("広告から何度も来たときは、問い合わせより前の最も新しいクリックを採る", async () => {

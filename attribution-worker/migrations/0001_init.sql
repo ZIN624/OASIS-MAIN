@@ -51,17 +51,29 @@ CREATE TABLE IF NOT EXISTS inquiries (
 CREATE INDEX IF NOT EXISTS idx_inquiries_user ON inquiries(line_user_hash, submitted_at);
 CREATE INDEX IF NOT EXISTS idx_inquiries_submitted ON inquiries(submitted_at);
 
--- Google 広告への送信待ち・結果（送信先の API に依存しない形）。
+-- Google 広告への送信待ち・結果（Data Manager API・1リクエスト1件）。
+-- 送ると request_id が返り、取り込みの成否はあとから（30分〜24時間）requestStatus で確かめる。
 CREATE TABLE IF NOT EXISTS conversion_uploads (
   inquiry_id       TEXT PRIMARY KEY REFERENCES inquiries(inquiry_id) ON DELETE CASCADE,
   store            TEXT NOT NULL,
   status           TEXT NOT NULL CHECK (status IN (
-                     'pending', 'retry', 'uploaded', 'failed', 'expired',
-                     'blocked_consent', 'suppressed_duplicate')),
+                     'pending',              -- 送る前
+                     'retry',                -- 一時的な失敗のあと、次の時刻に送り直す
+                     'submitted',            -- 受け付けられた。取り込みの結果待ち
+                     'uploaded',             -- 取り込まれた
+                     'duplicate',            -- Google 側ですでに数えられていた（同じ取引ID・同じクリック）
+                     'failed',               -- 送っても取り込まれない（理由は last_error_code）
+                     'expired',              -- 締め切り（クリックから90日）を過ぎた
+                     'blocked_consent',      -- 同意が無い
+                     'suppressed_duplicate'  -- 同じ広告クリックの2件目（Google 側でも1件しか数えない）
+                   )),
   conversion_at    TEXT NOT NULL,
   deadline_at      TEXT NOT NULL,             -- これを過ぎたら送らない
-  attempts         INTEGER NOT NULL DEFAULT 0,
-  next_attempt_at  TEXT,
+  attempts         INTEGER NOT NULL DEFAULT 0, -- 送った回数（結果の確認は数えない）
+  next_attempt_at  TEXT,                      -- 次に送る・次に結果を確かめる時刻
+  request_id       TEXT,                      -- Data Manager API の requestId（個人の情報ではない）
+  submitted_at     TEXT,
+  status_checks    INTEGER NOT NULL DEFAULT 0,
   last_error_code  TEXT,                      -- 種類だけ。相手の応答文は保存しない
   uploaded_at      TEXT,
   created_at       TEXT NOT NULL,

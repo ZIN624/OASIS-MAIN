@@ -143,8 +143,8 @@ export class Harness {
   }
 
   /** 広告クリック → 結びつけ → セッション、までを1回で。 */
-  async adUser(sub = USER_A): Promise<{ adRef: string; session: string }> {
-    const click = await this.adClick();
+  async adUser(sub = USER_A, gclid = GCLID): Promise<{ adRef: string; session: string }> {
+    const click = await this.adClick({ gclid });
     await this.bind(click.body.ad_ref, sub);
     const s = await this.session(sub);
     return { adRef: click.body.ad_ref, session: s.body.session };

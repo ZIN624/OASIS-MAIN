@@ -6,7 +6,8 @@ import { handleAdClick, handleBind, handleDiagnostics, handleInquiry, handleSess
 import { allowedOrigin, json, preflight } from "./http";
 import { runRetention } from "./retention";
 import { countDiag } from "./store";
-import { runUploadPass, type ConversionSender } from "./uploads";
+import { createDataManagerSender } from "./data-manager";
+import { runUploadPass } from "./uploads";
 
 const POST_ROUTES = {
   "/v1/ad-click": { handler: handleAdClick, origins: "ad" },
@@ -14,9 +15,6 @@ const POST_ROUTES = {
   "/v1/session": { handler: handleSession, origins: "form" },
   "/v1/inquiry": { handler: handleInquiry, origins: "form" },
 } as const;
-
-/** 送信方式が決まるまで null（runUploadPass は何もしない）。 */
-const SENDER: ConversionSender | null = null;
 
 /** 日本時間 4 時台に削除を回す。 */
 const RETENTION_UTC_HOUR = 19;
@@ -67,7 +65,9 @@ export default {
       const report = await runRetention(env.ATTR_DB, now);
       console.log(JSON.stringify({ event: "retention", ...report }));
     }
-    const upload = await runUploadPass(env.ATTR_DB, cfg, SENDER, now);
+    // 送信先の設定（DM_*）とサービスアカウントの鍵がそろわない限り sender は null で、何も送らない。
+    const sender = createDataManagerSender(cfg.dataManager, env.GOOGLE_SA_KEY_JSON, fetch, () => Math.floor(Date.now() / 1000));
+    const upload = await runUploadPass(env.ATTR_DB, cfg, sender, now);
     console.log(JSON.stringify({ event: "upload_pass", ...upload }));
   },
 };

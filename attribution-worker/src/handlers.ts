@@ -2,8 +2,8 @@
 
 import { addDays, addHours, classify, parseClickIds, type BindingCandidate } from "./attribution";
 import {
-  ATTRIBUTED_PER_USER_WINDOW_HOURS,
   CLICK_RETENTION_DAYS,
+  FIRST_UPLOAD_AFTER_CLICK_HOURS,
   normalizePath,
   RESEND_MAX_AGE_DAYS,
   SESSION_TTL_HOURS,
@@ -204,7 +204,7 @@ export async function handleSession(request: Request, deps: Deps): Promise<Respo
 /**
  * POST /v1/inquiry … LINE への送信が成功した「あと」にフォームが呼ぶ。
  * サーバは LINE のトークを見られないので、ここで分かるのは「本人のフォームが成功を報告した」ことまで。
- * 水増しを抑えるため、同じ人の広告経由は24時間に1件だけ送信の対象にする。
+ * 水増しを抑えるため、同じ広告クリックからの予約希望は1件だけ送信の対象にする（記録はすべて残す）。
  */
 export async function handleInquiry(request: Request, deps: Deps): Promise<Response> {
   const g = await guard(request, deps, deps.cfg.formOrigins, "inquiry");
@@ -278,8 +278,10 @@ export async function handleInquiry(request: Request, deps: Deps): Promise<Respo
   if (attributed) {
     const binding = verdict.binding!;
     const base = binding.consentAdData === "granted" ? "pending" : "blocked_consent";
-    const windowFrom = addHours(submittedAt, -ATTRIBUTED_PER_USER_WINDOW_HOURS);
-    // 判定と書き込みを1つの batch（トランザクション）にして、同時の2件がどちらも通らないようにする。
+    // クリックの直後は Google がまだ処理していないことがある。早くてもクリックの6時間後に送る。
+    const notBefore = addHours(binding.clickAt, FIRST_UPLOAD_AFTER_CLICK_HOURS);
+    // 同じ広告クリックの2件目は送らない（Google の「1回」の数え方と同じ。gbraid/wbraid は「1回」にできないため、ここで防ぐ）。
+    // 同じクリックの判定: 同じ ad_ref か、同じ gclid / gbraid / wbraid。判定と書き込みは1つの batch（トランザクション）。
     stmts.push(
       deps.db
         .prepare(
@@ -289,14 +291,17 @@ export async function handleInquiry(request: Request, deps: Deps): Promise<Respo
              CASE
                WHEN ?3 <> 'pending' THEN ?3
                WHEN EXISTS (
-                 SELECT 1 FROM inquiries i JOIN conversion_uploads u ON u.inquiry_id = i.inquiry_id
-                 WHERE i.line_user_hash = ?4 AND i.inquiry_id <> ?1
-                   AND u.status IN ('pending', 'retry', 'uploaded')
-                   AND i.submitted_at > ?5 AND i.submitted_at <= ?6
+                 SELECT 1 FROM conversion_uploads u
+                 JOIN inquiries i ON i.inquiry_id = u.inquiry_id
+                 JOIN ad_clicks c ON c.ad_ref = i.ad_ref
+                 JOIN ad_clicks me ON me.ad_ref = ?4
+                 WHERE u.inquiry_id <> ?1
+                   AND u.status IN ('pending', 'retry', 'submitted', 'uploaded', 'duplicate')
+                   AND (c.ad_ref = me.ad_ref OR c.gclid = me.gclid OR c.gbraid = me.gbraid OR c.wbraid = me.wbraid)
                ) THEN 'suppressed_duplicate'
                ELSE 'pending'
              END,
-             ?6, ?7, 0, ?8, ?8, ?8
+             ?5, ?6, 0, CASE WHEN ?7 > ?8 THEN ?7 ELSE NULL END, ?8, ?8
            WHERE EXISTS (SELECT 1 FROM inquiries WHERE inquiry_id = ?1 AND received_at = ?8)
            ON CONFLICT (inquiry_id) DO NOTHING`,
         )
@@ -304,10 +309,10 @@ export async function handleInquiry(request: Request, deps: Deps): Promise<Respo
           inquiryId,
           deps.cfg.store,
           base,
-          claims.h,
-          windowFrom,
+          binding.adRef,
           submittedAt,
           addDays(binding.clickAt, CLICK_RETENTION_DAYS),
+          notBefore,
           nowIso,
         ),
     );

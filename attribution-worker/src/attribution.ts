@@ -85,6 +85,11 @@ export function formatJstDateTime(iso: string): string {
   );
 }
 
+/** Data Manager API の eventTimestamp（RFC 3339）。日本時間で出す。 */
+export function formatJstRfc3339(iso: string): string {
+  return formatJstDateTime(iso).replace(" ", "T");
+}
+
 export function jstDay(iso: string): string {
   return formatJstDateTime(iso).slice(0, 10);
 }

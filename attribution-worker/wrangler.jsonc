@@ -2,7 +2,7 @@
 //
 // 🚨 まだどの環境にもデプロイしていません（承認ゲート4）。
 //   database_id は、オーナーの承認後に `wrangler d1 create` で作ってから書き込みます。
-//   秘密の値（ATTR_ROOT_KEY / ADMIN_TOKEN）はこのファイルに書かず、`wrangler secret put` で入れます。
+//   秘密の値（ATTR_ROOT_KEY / ADMIN_TOKEN / GOOGLE_SA_KEY_JSON）はこのファイルに書かず、`wrangler secret put` で入れます。
 //   LINE のチャネルID（LINE_CHANNEL_IDS）は、LINE Developers で確かめてから入れます。
 {
   "$schema": "node_modules/wrangler/config-schema.json",
@@ -20,7 +20,11 @@
     "FORM_ORIGINS": "https://zin624.github.io",
     "LANDING_PATHS": "/oasis本店,/本店新規問い合わせ,/本店詳細",
     "LINE_CHANNEL_IDS": "",
-    "BIND_WINDOW_HOURS": "24"
+    "BIND_WINDOW_HOURS": "24",
+    "DM_OPERATING_ACCOUNT_ID": "",
+    "DM_LOGIN_ACCOUNT_ID": "",
+    "DM_CONVERSION_ACTION_ID": "",
+    "DM_VALIDATE_ONLY": "true"
   },
   "d1_databases": [
     {
@@ -43,7 +47,13 @@
         "FORM_ORIGINS": "https://zin624.github.io",
         "LANDING_PATHS": "/oasis本店,/本店新規問い合わせ,/本店詳細",
         "LINE_CHANNEL_IDS": "",
-        "BIND_WINDOW_HOURS": "24"
+        "BIND_WINDOW_HOURS": "24",
+        // Data Manager API の送信先。値を入れるのは承認後（Google 広告アカウントID・新しいコンバージョンアクションのID）。
+        // DM_VALIDATE_ONLY が "true" のあいだは、Google に確かめさせるだけで取り込ませない。
+        "DM_OPERATING_ACCOUNT_ID": "",
+        "DM_LOGIN_ACCOUNT_ID": "",
+        "DM_CONVERSION_ACTION_ID": "",
+        "DM_VALIDATE_ONLY": "true"
       },
       "d1_databases": [
         {
@@ -67,7 +77,13 @@
         "FORM_ORIGINS": "https://zin624.github.io",
         "LANDING_PATHS": "/oasis本店,/本店新規問い合わせ,/本店詳細",
         "LINE_CHANNEL_IDS": "",
-        "BIND_WINDOW_HOURS": "24"
+        "BIND_WINDOW_HOURS": "24",
+        // Data Manager API の送信先。値を入れるのは承認後（Google 広告アカウントID・新しいコンバージョンアクションのID）。
+        // DM_VALIDATE_ONLY が "true" のあいだは、Google に確かめさせるだけで取り込ませない。
+        "DM_OPERATING_ACCOUNT_ID": "",
+        "DM_LOGIN_ACCOUNT_ID": "",
+        "DM_CONVERSION_ACTION_ID": "",
+        "DM_VALIDATE_ONLY": "true"
       },
       "d1_databases": [
         {

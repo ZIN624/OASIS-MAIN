@@ -24,6 +24,16 @@ export interface Env {
   ATTR_ROOT_KEY?: string;
   /** 秘密（wrangler secret）。診断APIの Bearer。 */
   ADMIN_TOKEN?: string;
+  /** Data Manager API: 本店の Google 広告アカウントID（ハイフンなし10桁）。 */
+  DM_OPERATING_ACCOUNT_ID?: string;
+  /** Data Manager API: 管理アカウント経由で送るときだけ（ハイフンなし10桁）。 */
+  DM_LOGIN_ACCOUNT_ID?: string;
+  /** Data Manager API: 新しく作るコンバージョンアクション（UPLOAD_CLICKS）のID。 */
+  DM_CONVERSION_ACTION_ID?: string;
+  /** "false" のときだけ実際に取り込ませる。既定は validateOnly（確かめるだけで取り込まない）。 */
+  DM_VALIDATE_ONLY?: string;
+  /** 秘密（wrangler secret）。サービスアカウントの鍵（JSON）。 */
+  GOOGLE_SA_KEY_JSON?: string;
 }
 
 export interface Config {
@@ -38,14 +48,22 @@ export interface Config {
   bindWindowHours: number;
   rootKey: string | null;
   adminToken: string | null;
+  dataManager: DataManagerConfig | null;
+}
+
+export interface DataManagerConfig {
+  operatingAccountId: string;
+  loginAccountId: string | null;
+  conversionActionId: string;
+  validateOnly: boolean;
 }
 
 /** クリックを保存する日数（オーナー決定③）。 */
 export const CLICK_RETENTION_DAYS = 90;
 /** 問い合わせの件数を残す期間（月）。識別子は90日で消す。 */
 export const INQUIRY_RETENTION_MONTHS = 13;
-/** 同じ人の「広告経由の予約希望」は24時間に1件まで送る（水増し防止）。 */
-export const ATTRIBUTED_PER_USER_WINDOW_HOURS = 24;
+/** クリックから最初に Google へ送るまでの時間。直後は「まだ処理中」で弾かれるため（Google 広告ヘルプ）。 */
+export const FIRST_UPLOAD_AFTER_CLICK_HOURS = 6;
 /** フォームのセッション（IDトークンを検証した印）の有効時間。 */
 export const SESSION_TTL_HOURS = 12;
 /** 次に開いたときの再送で受け付ける、送信時刻の古さの上限。 */
@@ -91,5 +109,21 @@ export function readConfig(env: Env): Config {
     bindWindowHours: Number.isFinite(bindWindow) && bindWindow > 0 && bindWindow <= 72 ? bindWindow : 24,
     rootKey: rootKey.length >= 32 ? rootKey : null,
     adminToken: adminToken.length >= 32 ? adminToken : null,
+    dataManager: readDataManagerConfig(env),
+  };
+}
+
+/** 3つの値がすべて正しい形のときだけ送信先として使う。1つでも欠けたら送らない。 */
+function readDataManagerConfig(env: Env): DataManagerConfig | null {
+  const operating = (env.DM_OPERATING_ACCOUNT_ID ?? "").trim();
+  const login = (env.DM_LOGIN_ACCOUNT_ID ?? "").trim();
+  const action = (env.DM_CONVERSION_ACTION_ID ?? "").trim();
+  if (!/^\d{10}$/.test(operating) || !/^\d{1,20}$/.test(action)) return null;
+  if (login && !/^\d{10}$/.test(login)) return null;
+  return {
+    operatingAccountId: operating,
+    loginAccountId: login || null,
+    conversionActionId: action,
+    validateOnly: env.DM_VALIDATE_ONLY !== "false",
   };
 }
