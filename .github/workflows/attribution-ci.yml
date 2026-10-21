@@ -1,0 +1,42 @@
+name: attribution-ci
+
+# 広告帰属（Worker）と予約フォームの自動テスト。デプロイはしない。
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: attribution-worker
+    env:
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 構文チェック（js/*.js）
+        run: for f in js/*.js; do node --check "$f"; done
+      - run: npm ci
+        working-directory: frontend-tests
+      - run: npm test
+        working-directory: frontend-tests

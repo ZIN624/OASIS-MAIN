@@ -1,0 +1,114 @@
+<!--
+  OASIS本店：広告から来た人だけ、LINE ボタンの行き先を「入口ページ（LIFF）」に変える。
+  Wix の「設定 → カスタムコード」に貼る。🚨 貼るのはオーナーの承認後（Wix の下書きを別の作業で編集中のため）。
+    - 適用するページ: 本店の3ページだけ（oasis本店 / 本店新規問い合わせ / 本店詳細）
+    - 位置: body の終わり
+    - 読み込み: 「1回だけ読み込む」（ページ移動しても ad_ref を覚えておくため）
+  止め方: このカスタムコードを OFF にする（いつもの LINE リンクに戻る）。
+  URL に gclid / gbraid / wbraid が無い人（広告以外）には何もしない。
+  クリック識別子は LINE の URL に載せない。端末（Cookie・localStorage）にも保存しない。
+-->
+<script>
+  (function () {
+    "use strict";
+    var CFG = {
+      endpoint: "", // 例: https://oasis-honten-attribution.<account>.workers.dev
+      entryLiffId: "", // 入口ページ用の LIFF ID
+      store: "honten",
+    };
+    var LINE_HREF_RE = /^https:\/\/line\.me\/R\/ti\/p\/(%40|@)nlx8658m\/?(\?.*)?$/i;
+    var CLICK_ID_RE = /^[A-Za-z0-9_-]{16,512}$/;
+    var AD_REF_RE = /^[A-Za-z0-9_-]{22}$/;
+    var TIMEOUT_MS = 3000;
+
+    if (!/^https:\/\/[a-z0-9.-]+$/i.test(CFG.endpoint) || !/^\d{10}-[A-Za-z0-9]{8}$/.test(CFG.entryLiffId)) return;
+    if (typeof window.fetch !== "function" || typeof URLSearchParams !== "function") return;
+
+    var query = new URLSearchParams(window.location.search);
+    var ids = {};
+    var found = false;
+    var broken = false;
+    ["gclid", "gbraid", "wbraid"].forEach(function (name) {
+      var value = query.get(name);
+      if (!value) return;
+      if (!CLICK_ID_RE.test(value)) broken = true;
+      ids[name] = value;
+      found = true;
+    });
+    if (!found || broken) return;
+
+    // Wix の同意設定で「広告」を拒否している人には何もしない。
+    try {
+      var manager = window.consentPolicyManager;
+      var current = manager && typeof manager.getCurrentConsentPolicy === "function" ? manager.getCurrentConsentPolicy() : null;
+      if (current && current.policy && current.policy.advertising === false) return;
+    } catch (e) {
+      return;
+    }
+
+    var adRef = null;
+
+    function entryUrl() {
+      return "https://liff.line.me/" + CFG.entryLiffId + "?ad_ref=" + encodeURIComponent(adRef);
+    }
+
+    function rewrite(a) {
+      var href = a.getAttribute("href") || "";
+      if (!LINE_HREF_RE.test(href)) return;
+      if (!a.hasAttribute("data-oasis-line-href")) a.setAttribute("data-oasis-line-href", href);
+      a.setAttribute("href", entryUrl());
+    }
+
+    function rewriteAll() {
+      var links = document.querySelectorAll('a[href*="nlx8658m"]');
+      for (var i = 0; i < links.length; i += 1) rewrite(links[i]);
+    }
+
+    function utm(name) {
+      var v = query.get(name);
+      return v ? v.slice(0, 100) : null;
+    }
+
+    var controller = typeof AbortController === "function" ? new AbortController() : null;
+    var timer = setTimeout(function () {
+      if (controller) controller.abort();
+    }, TIMEOUT_MS);
+
+    window
+      .fetch(CFG.endpoint + "/v1/ad-click", {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=UTF-8" },
+        body: JSON.stringify({
+          store: CFG.store,
+          click_ids: ids,
+          landing_path: window.location.pathname,
+          utm: { source: utm("utm_source"), medium: utm("utm_medium"), campaign: utm("utm_campaign") },
+        }),
+        credentials: "omit",
+        mode: "cors",
+        signal: controller ? controller.signal : undefined,
+      })
+      .then(function (res) {
+        return res.ok ? res.json() : null;
+      })
+      .then(function (data) {
+        clearTimeout(timer);
+        if (!data || !AD_REF_RE.test(data.ad_ref || "")) return;
+        adRef = data.ad_ref;
+        rewriteAll();
+        // Wix はページの中身を後から描き直すので、増えた・戻されたリンクも直す。
+        if (typeof MutationObserver === "function") {
+          new MutationObserver(rewriteAll).observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["href"],
+          });
+        }
+      })
+      .catch(function () {
+        // 失敗・時間切れ: いつもの LINE リンクのまま。
+        clearTimeout(timer);
+      });
+  })();
+</script>

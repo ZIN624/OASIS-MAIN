@@ -1,0 +1,99 @@
+// OASIS本店 LINE予約希望の広告帰属 Worker（SalonOS とは別の Worker・別の D1）。
+//
+// 🚨 まだどの環境にもデプロイしていません（承認ゲート4）。
+//   database_id は、オーナーの承認後に `wrangler d1 create` で作ってから書き込みます。
+//   秘密の値（ATTR_ROOT_KEY / ADMIN_TOKEN / GOOGLE_SA_KEY_JSON）はこのファイルに書かず、`wrangler secret put` で入れます。
+//   LINE のチャネルID（LINE_CHANNEL_IDS）は、LINE Developers で確かめてから入れます。
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "oasis-honten-attribution-dev",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-15",
+  "observability": { "enabled": true },
+  // ローカル開発用（wrangler dev / テスト）。外には出ない。
+  "vars": {
+    "ENV_NAME": "development",
+    "STORE_ID": "honten",
+    "AD_ATTR_ENABLED": "true",
+    "UPLOAD_ENABLED": "false",
+    "AD_CLICK_ORIGINS": "https://www.cuthome-oasis.com,https://cuthome-oasis.com",
+    "FORM_ORIGINS": "https://zin624.github.io",
+    "LANDING_PATHS": "/oasis本店,/本店新規問い合わせ,/本店詳細",
+    "LINE_CHANNEL_IDS": "",
+    "BIND_WINDOW_HOURS": "24",
+    "DM_OPERATING_ACCOUNT_ID": "",
+    "DM_LOGIN_ACCOUNT_ID": "",
+    "DM_CONVERSION_ACTION_ID": "",
+    "DM_VALIDATE_ONLY": "true"
+  },
+  "d1_databases": [
+    {
+      "binding": "ATTR_DB",
+      "database_name": "oasis-honten-attribution-dev",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "triggers": { "crons": ["5 * * * *"] },
+  "env": {
+    "staging": {
+      "name": "oasis-honten-attribution-staging",
+      "vars": {
+        "ENV_NAME": "staging",
+        "STORE_ID": "honten",
+        "AD_ATTR_ENABLED": "false",
+        "UPLOAD_ENABLED": "false",
+        "AD_CLICK_ORIGINS": "https://www.cuthome-oasis.com,https://cuthome-oasis.com",
+        "FORM_ORIGINS": "https://zin624.github.io",
+        "LANDING_PATHS": "/oasis本店,/本店新規問い合わせ,/本店詳細",
+        "LINE_CHANNEL_IDS": "",
+        "BIND_WINDOW_HOURS": "24",
+        // Data Manager API の送信先。値を入れるのは承認後（Google 広告アカウントID・新しいコンバージョンアクションのID）。
+        // DM_VALIDATE_ONLY が "true" のあいだは、Google に確かめさせるだけで取り込ませない。
+        "DM_OPERATING_ACCOUNT_ID": "",
+        "DM_LOGIN_ACCOUNT_ID": "",
+        "DM_CONVERSION_ACTION_ID": "",
+        "DM_VALIDATE_ONLY": "true"
+      },
+      "d1_databases": [
+        {
+          "binding": "ATTR_DB",
+          "database_name": "oasis-honten-attribution-staging",
+          "database_id": "REPLACE_AFTER_APPROVAL_STAGING",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "triggers": { "crons": ["5 * * * *"] }
+    },
+    "production": {
+      "name": "oasis-honten-attribution",
+      "vars": {
+        "ENV_NAME": "production",
+        "STORE_ID": "honten",
+        // 最初は止めた状態で出す。動かすのはオーナーの承認後。
+        "AD_ATTR_ENABLED": "false",
+        "UPLOAD_ENABLED": "false",
+        "AD_CLICK_ORIGINS": "https://www.cuthome-oasis.com,https://cuthome-oasis.com",
+        "FORM_ORIGINS": "https://zin624.github.io",
+        "LANDING_PATHS": "/oasis本店,/本店新規問い合わせ,/本店詳細",
+        "LINE_CHANNEL_IDS": "",
+        "BIND_WINDOW_HOURS": "24",
+        // Data Manager API の送信先。値を入れるのは承認後（Google 広告アカウントID・新しいコンバージョンアクションのID）。
+        // DM_VALIDATE_ONLY が "true" のあいだは、Google に確かめさせるだけで取り込ませない。
+        "DM_OPERATING_ACCOUNT_ID": "",
+        "DM_LOGIN_ACCOUNT_ID": "",
+        "DM_CONVERSION_ACTION_ID": "",
+        "DM_VALIDATE_ONLY": "true"
+      },
+      "d1_databases": [
+        {
+          "binding": "ATTR_DB",
+          "database_name": "oasis-honten-attribution",
+          "database_id": "REPLACE_AFTER_APPROVAL_PRODUCTION",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "triggers": { "crons": ["5 * * * *"] }
+    }
+  }
+}

@@ -86,6 +86,8 @@
     const formArea = document.getElementById("formArea");
 
     let latestReservationData = null;
+    // 広告帰属の記録用。確認画面に進むたびに作り、同じ確認画面での再送信（二重タップ・失敗後の再試行）では変えない。
+    let latestInquiryId = null;
     let isSubmitButtonVisible = false;
 
     function setSummaryHintVisible(visible) {
@@ -142,6 +144,7 @@
       if (!window.FormValidator?.validateReservationForm()) return;
 
       latestReservationData = collectReservationData();
+      latestInquiryId = window.OasisAttribution?.newInquiryId() || null;
 
       if (summaryDetails) {
         renderSummaryTable(summaryDetails, latestReservationData);
@@ -193,6 +196,12 @@
             window.OasisAnalytics.trackInquiry(closeForm);
           } else {
             closeForm();
+          }
+          // 広告帰属の記録。待たずに送るだけで、失敗しても上の処理（送信・計測・画面を閉じる）は変わらない。
+          try {
+            window.OasisAttribution?.recordInquiry(latestInquiryId);
+          } catch (_) {
+            // 予約の送信は成功しているので、ここでは何もしない。
           }
         })
         .catch((error) => {

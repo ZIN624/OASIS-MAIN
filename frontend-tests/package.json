@@ -1,0 +1,13 @@
+{
+  "name": "oasis-main-frontend-tests",
+  "private": true,
+  "description": "予約フォーム・入口ページ・Wix のコード案の自動テスト（jsdom）。本番には配らない。",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0",
+    "vitest": "4.1.11"
+  }
+}

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>OASIS本店 LINEで予約</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      /* このページだけ。予約フォームの見た目（css/style.css）は変えない。 */
+      .entry-link {
+        display: block;
+        text-align: center;
+        text-decoration: none;
+        line-height: 1.2;
+      }
+      .entry-link[hidden] {
+        display: none;
+      }
+      .entry-text {
+        margin-bottom: 0.9rem;
+        font-size: 0.96rem;
+      }
+      .entry-small {
+        margin-top: 0.7rem;
+        font-size: 0.85rem;
+        color: #4a5a50;
+      }
+    </style>
+    <!-- このページには解析タグ（GA4・Clarity）を入れない。 -->
+  </head>
+
+  <body>
+    <section class="notice" id="entry">
+      <h2 class="notice__title">LINEで予約へ進みます</h2>
+
+      <p class="entry-text" id="entryStatus">読み込んでいます。</p>
+
+      <div id="entryConsent" hidden>
+        <p class="entry-text">
+          このあとLINEの友だち追加画面が開きます。友だち追加のあと、トーク画面のメニュー「予約」から予約希望をお送りください。
+        </p>
+        <p class="entry-text">
+          広告の効果を確かめるため、同意いただいた場合に限り、ご覧になった広告のクリックを示す番号と、LINEのお客様を区別する情報（元に戻せない形に変えたもの）を結びつけ、予約希望を送られたかどうかをGoogle広告に知らせます。お名前・電話番号・LINEのIDはGoogleに送りません。記録は90日で消去します。
+        </p>
+        <p class="entry-text">同意しなくても、予約は同じようにご利用いただけます。</p>
+        <div class="existing-actions">
+          <button type="button" id="entryAgree" class="btn">同意してLINEへ進む</button>
+          <button type="button" id="entryDecline" class="btn btn-sub">同意せずにLINEへ進む</button>
+        </div>
+        <p class="entry-small">
+          詳しくは<a href="https://www.cuthome-oasis.com/%E5%80%8B%E4%BA%BA%E6%83%85%E5%A0%B1%E4%BF%9D%E8%AD%B7%E6%96%B9%E9%87%9D" target="_blank" rel="noopener">お客様情報の取扱いに関する方針</a>をご覧ください。
+        </p>
+      </div>
+
+      <a id="entryFallback" class="btn btn-sub entry-link" href="https://line.me/R/ti/p/%40nlx8658m">LINEを開く</a>
+    </section>
+
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="./js/attribution-config.js"></script>
+    <script src="./js/entry.js"></script>
+  </body>
+</html>
