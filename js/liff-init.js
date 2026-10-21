@@ -1,7 +1,8 @@
 (function () {
   if (!window.liff) return;
 
-  liff
+  // 広告帰属（attribution.js）が初期化の完了を待てるように、同じ Promise を置いておく。動作は変えない。
+  window.OasisLiffReady = liff
     .init({
       liffId: "2006621786-8K7V4W3M",
     })

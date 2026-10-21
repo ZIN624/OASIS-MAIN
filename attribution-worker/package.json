@@ -1,0 +1,20 @@
+{
+  "name": "oasis-honten-attribution",
+  "private": true,
+  "version": "0.1.0",
+  "description": "OASIS本店 LINE予約希望の広告帰属（Cloudflare Worker + D1）",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "WRANGLER_SEND_METRICS=false wrangler deploy --dry-run --outdir dist --env staging",
+    "db:migrate:local": "wrangler d1 migrations apply ATTR_DB --local --env staging"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.22.0",
+    "@cloudflare/workers-types": "5.20261001.1",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11",
+    "wrangler": "4.124.0"
+  }
+}
