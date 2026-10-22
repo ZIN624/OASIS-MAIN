@@ -12,3 +12,8 @@ declare global {
 }
 
 await applyD1Migrations(env.ATTR_DB, env.TEST_MIGRATIONS);
+
+// テストから本物の LINE・Google へ通信しないための止め具。通信はすべて差し替えた fetchImpl を通す。
+globalThis.fetch = async () => {
+  throw new Error("テストの中で外への通信は禁止です（fetchImpl を差し替えてください）");
+};
