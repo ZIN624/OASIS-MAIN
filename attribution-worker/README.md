@@ -106,6 +106,14 @@ Google Ads API の `UploadClickConversions` は、2026-06-15 以降、過去に�
 - 認証はサービスアカウントの鍵（`GOOGLE_SA_KEY_JSON`）で JWT を署名してトークンを取ります。
   鍵・JWT・トークンはログ・DB・エラー文に出しません。鍵に別のトークン発行先が書かれていたら使いません
 - `DM_VALIDATE_ONLY=true`（既定）のあいだは `validateOnly` で送り、取り込ませません（分かる範囲は下の「validateOnly で分かること」）
+- **実際に取り込ませられるのは本番だけ**です。`ENV_NAME=production` かつ `DM_VALIDATE_ONLY=false`（ちょうどこの文字）のときだけ
+  `validateOnly` が外れます。それ以外は止め具が2つ効きます
+  - 本番以外で `DM_VALIDATE_ONLY=false` にした → 送信の処理は Google に何も出さずに止まり、診断に `upload_live_not_allowed`
+  - `DM_VALIDATE_ONLY` が `true` / `false` / 未設定 以外（`False`・`0` など） → 本番でも止まり、診断に `upload_validate_only_invalid`
+  - 上をすり抜けても、本番以外では送る本文が必ず `validateOnly: true` になる
+- **開発・テスト用の偽のクリック識別子は、先頭を `TEST_`（または `TEST-`）にしてください。** Google には一切送りません
+  （確かめるだけのときも）。その行は `failed`・`last_error_code=test_click_id` になり、診断に `upload_test_click_blocked`。
+  見るのは先頭だけなので、本物の識別子の途中に test が入っていても止めません
 - 応答の `fieldWarnings`（任意の項目が受け付けられなかった）は件数を診断に残します（`upload_field_warning`）
 
 ### 送る項目の確認（公式 RPC リファレンス・2026-10-21）

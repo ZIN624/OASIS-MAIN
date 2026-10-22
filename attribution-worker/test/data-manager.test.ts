@@ -8,7 +8,7 @@ import {
   createDataManagerSender,
 } from "../src/data-manager";
 import { DATA_MANAGER_SCOPE, GOOGLE_TOKEN_URL, parseServiceAccountKey } from "../src/google-auth";
-import type { DataManagerConfig } from "../src/config";
+import { readConfig, type DataManagerConfig } from "../src/config";
 import type { ConversionEvent } from "../src/uploads";
 
 const CFG: DataManagerConfig = {
@@ -241,5 +241,45 @@ describe("Data Manager API の送り手（サービスアカウント）", () =>
 
   it("base64url の補助（テスト用の確認）", () => {
     expect(toBase64Url(new Uint8Array([255, 254]))).toBe("__4");
+  });
+});
+
+describe("Data Manager API の送り手の止め具", () => {
+  it("開発・テスト用の偽の識別子（TEST_ / TEST-）は、トークンも取らずに拒否する（Google へ何も出ない）", async () => {
+    const sa = await makeServiceAccount();
+    const g = fakeGoogle(sa.publicKey);
+    const sender = createDataManagerSender(CFG, sa.json, g.fetchImpl, () => 1_800_000_000)!;
+    for (const ids of [
+      { gclid: "TEST_STG_CLICK_0001_ABCDEFG", gbraid: null, wbraid: null },
+      { gclid: null, gbraid: "test-gbraid-0001-ABCDEFG", wbraid: null },
+      { gclid: null, gbraid: null, wbraid: "Test_wbraid_0001_ABCDEFG" },
+      // 送る識別子は gclid だけでも、ほかの欄に偽物が混じっていたら行ごと拒否する
+      { gclid: "Cj0KCQjw-real_looking_ABCDEFGHIJ", gbraid: "TEST_GBRAID_0001_ABCD", wbraid: null },
+    ]) {
+      expect(await sender.submit({ ...EVENT, ...ids })).toEqual({ kind: "rejected", code: "test_click_id" });
+    }
+    expect(g.calls).toHaveLength(0);
+  });
+
+  it("本物の識別子は、途中に test が含まれていても止めない", async () => {
+    const sa = await makeServiceAccount();
+    const g = fakeGoogle(sa.publicKey);
+    const sender = createDataManagerSender(CFG, sa.json, g.fetchImpl, () => 1_800_000_000)!;
+    expect((await sender.submit({ ...EVENT, gclid: "Cj0KCQjwTEST_ABCDEFGHIJKLMNOP" })).kind).toBe("accepted");
+  });
+
+  it("ステージングの設定で DM_VALIDATE_ONLY=false にしても、送る本文は validateOnly: true のまま", async () => {
+    const cfg = readConfig({
+      ATTR_DB: undefined as unknown as D1Database,
+      ENV_NAME: "staging",
+      DM_OPERATING_ACCOUNT_ID: "1234567890",
+      DM_CONVERSION_ACTION_ID: "987654321",
+      DM_VALIDATE_ONLY: "false",
+    }).dataManager!;
+    const sa = await makeServiceAccount();
+    const g = fakeGoogle(sa.publicKey);
+    const sender = createDataManagerSender(cfg, sa.json, g.fetchImpl, () => 1_800_000_000)!;
+    expect(await sender.submit(EVENT)).toEqual({ kind: "validated", warnings: 0 });
+    expect(JSON.parse(String(g.calls[1].init.body)).validateOnly).toBe(true);
   });
 });

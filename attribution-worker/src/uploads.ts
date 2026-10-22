@@ -9,8 +9,8 @@
 // - 一時的な障害は待って送り直し、MAX_ATTEMPTS 回で打ち切る
 // - 1回の実行で外へ出す通信の数に上限を置く（件数に比例して増やさない）
 
-import type { Config } from "./config";
-import { addHours, formatJstRfc3339 } from "./attribution";
+import type { Config, UploadBlock } from "./config";
+import { addHours, formatJstRfc3339, hasTestClickId } from "./attribution";
 import { countDiag } from "./store";
 
 export interface ConversionEvent {
@@ -75,7 +75,9 @@ export function safeCode(code: unknown): string {
 }
 
 export interface UploadPassReport {
-  skipped?: "disabled" | "not_configured" | "auth_error" | "config_error";
+  skipped?: "disabled" | "blocked" | "not_configured" | "auth_error" | "config_error";
+  /** skipped が "blocked" のときの理由（設定の誤り）。 */
+  blocked?: UploadBlock;
   expired: number;
   submitted: number;
   validated: number;
@@ -127,6 +129,11 @@ export async function runUploadPass(
   if (!cfg.enabled || !cfg.uploadEnabled) {
     await countDiag(db, "upload_disabled", nowIso);
     return { ...report, skipped: "disabled" };
+  }
+  if (cfg.uploadBlock) {
+    // 設定の誤り。Google には何も送らず、確かめにも行かない。人が設定を直すまで毎回ここで止まる。
+    await countDiag(db, cfg.uploadBlock === "live_not_allowed" ? "upload_live_not_allowed" : "upload_validate_only_invalid", nowIso);
+    return { ...report, skipped: "blocked", blocked: cfg.uploadBlock };
   }
   if (!sender) {
     await countDiag(db, "upload_not_configured", nowIso);
@@ -238,6 +245,13 @@ export async function runUploadPass(
     .bind(cfg.store, nowIso, SUBMITS_PER_PASS)
     .all<DueSubmit>();
   for (const row of due) {
+    if (hasTestClickId(row)) {
+      // 開発・テスト用の偽の識別子。送らずに打ち切る（回数は数えない。本物の行は止めない）。
+      report.failed += 1;
+      await countDiag(db, "upload_test_click_blocked", nowIso);
+      await set(row.inquiry_id, { status: "failed", next_attempt_at: null, last_error_code: "test_click_id" });
+      continue;
+    }
     const event: ConversionEvent = {
       orderId: row.inquiry_id,
       gclid: row.gclid,

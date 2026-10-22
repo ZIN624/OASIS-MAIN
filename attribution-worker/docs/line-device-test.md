@@ -170,7 +170,7 @@ node attribution-worker/scripts/build-staging-site.mjs --out dist-staging-site \
 ### テスト A: 広告から来て、その場で予約（iPhone）
 
 1. Claude Code がテスト用の広告クリックを1件作り、入口のURL（`https://liff.line.me/<STG-入口>?ad_ref=<乱数>`）を渡します
-   （gclid はテスト用の偽の値です。Google には送りません）
+   （gclid はテスト用の偽の値で、先頭を `TEST_` にします。先頭が `TEST_` の識別子は Worker が Google へ送りません）
 2. そのURLを**テスト用のグループ**に貼り、スマホでタップする
 3. 画面を確かめる
    - [ ] 初めてなら、LINE の同意画面が出る（友だち追加のチェックも出る）
