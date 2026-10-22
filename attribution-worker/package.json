@@ -14,7 +14,14 @@
     "@cloudflare/vitest-pool-workers": "0.22.0",
     "@cloudflare/workers-types": "5.20261001.1",
     "typescript": "5.9.3",
-    "vitest": "4.1.11",
-    "wrangler": "4.124.0"
+    "vitest": "4.1.12",
+    "wrangler": "4.148.0"
+  },
+  "overrides": {
+    "miniflare": "5.20261006.0-alpha",
+    "sharp": "0.35.5",
+    "@cloudflare/vitest-pool-workers": {
+      "wrangler": "$wrangler"
+    }
   }
 }
