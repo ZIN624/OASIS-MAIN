@@ -40,6 +40,21 @@ export interface BindingCandidate {
 const HOUR_MS = 3_600_000;
 
 /**
+ * 開発・テスト用の偽のクリック識別子の決まり: 先頭が「TEST_」か「TEST-」（大文字小文字は問わない）。
+ * Google には一切送らない（runUploadPass と Data Manager の sender の両方で止める）。
+ * 先頭だけを見るので、本物の識別子の途中に test が含まれていても止めない。
+ */
+export const TEST_CLICK_ID_RE = /^test[_-]/i;
+
+export function isTestClickId(id: string | null | undefined): boolean {
+  return typeof id === "string" && TEST_CLICK_ID_RE.test(id);
+}
+
+export function hasTestClickId(ids: { gclid?: string | null; gbraid?: string | null; wbraid?: string | null }): boolean {
+  return isTestClickId(ids.gclid) || isTestClickId(ids.gbraid) || isTestClickId(ids.wbraid);
+}
+
+/**
  * 最終有効クリック: 問い合わせより前に結びつけられた、最も新しいクリックを採る。
  * - 24時間以内: ad_same_day
  * - 24時間超〜90日以内: ad_delayed

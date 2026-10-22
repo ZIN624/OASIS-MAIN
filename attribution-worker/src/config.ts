@@ -30,7 +30,10 @@ export interface Env {
   DM_LOGIN_ACCOUNT_ID?: string;
   /** Data Manager API: 新しく作るコンバージョンアクション（UPLOAD_CLICKS）のID。 */
   DM_CONVERSION_ACTION_ID?: string;
-  /** "false" のときだけ実際に取り込ませる。既定は validateOnly（確かめるだけで取り込まない）。 */
+  /**
+   * "false" のときだけ実際に取り込ませる。既定は validateOnly（確かめるだけで取り込まない）。
+   * 実際に取り込ませられるのは ENV_NAME が "production" のときだけ（readUploadBlock）。
+   */
   DM_VALIDATE_ONLY?: string;
   /** 秘密（wrangler secret）。サービスアカウントの鍵（JSON）。 */
   GOOGLE_SA_KEY_JSON?: string;
@@ -49,7 +52,16 @@ export interface Config {
   rootKey: string | null;
   adminToken: string | null;
   dataManager: DataManagerConfig | null;
+  /** 送信の設定の誤り。null 以外なら、送信の処理は Google に何も送らずに止まる。 */
+  uploadBlock: UploadBlock | null;
 }
+
+/**
+ * 送信を止める設定の誤り（どちらも診断の件数に残る）。
+ * - live_not_allowed: 本番（ENV_NAME=production）以外で DM_VALIDATE_ONLY=false にした
+ * - validate_only_invalid: DM_VALIDATE_ONLY が "true" / "false" / 未設定 のどれでもない
+ */
+export type UploadBlock = "live_not_allowed" | "validate_only_invalid";
 
 export interface DataManagerConfig {
   operatingAccountId: string;
@@ -110,7 +122,22 @@ export function readConfig(env: Env): Config {
     rootKey: rootKey.length >= 32 ? rootKey : null,
     adminToken: adminToken.length >= 32 ? adminToken : null,
     dataManager: readDataManagerConfig(env),
+    uploadBlock: readUploadBlock(env),
   };
+}
+
+const isProduction = (env: Env): boolean => (env.ENV_NAME ?? "").trim() === "production";
+
+/** 実際に取り込ませてよいのは「本番」かつ「DM_VALIDATE_ONLY が "false" ちょうど」のときだけ。 */
+function liveSendAllowed(env: Env): boolean {
+  return isProduction(env) && env.DM_VALIDATE_ONLY === "false";
+}
+
+function readUploadBlock(env: Env): UploadBlock | null {
+  const v = env.DM_VALIDATE_ONLY;
+  if (v !== undefined && v !== "" && v !== "true" && v !== "false") return "validate_only_invalid";
+  if (v === "false" && !isProduction(env)) return "live_not_allowed";
+  return null;
 }
 
 /** 3つの値がすべて正しい形のときだけ送信先として使う。1つでも欠けたら送らない。 */
@@ -124,6 +151,7 @@ function readDataManagerConfig(env: Env): DataManagerConfig | null {
     operatingAccountId: operating,
     loginAccountId: login || null,
     conversionActionId: action,
-    validateOnly: env.DM_VALIDATE_ONLY !== "false",
+    // 本番以外では、設定を誤っても必ず「確かめるだけ」（送信の処理も uploadBlock で止まる。二重の止め具）。
+    validateOnly: !liveSendAllowed(env),
   };
 }

@@ -10,6 +10,7 @@
 //   - productDestinationId は種類 UPLOAD_CLICKS のコンバージョンアクションの ID
 // 送るのはクリック識別子・時刻・取引ID（= inquiry_id）・同意だけ。氏名・電話番号・メール・LINE の ID は送らない。
 
+import { hasTestClickId } from "./attribution";
 import type { DataManagerConfig } from "./config";
 import { fetchAccessToken, parseServiceAccountKey } from "./google-auth";
 import type { FetchLike } from "./line";
@@ -171,6 +172,8 @@ export function createDataManagerSender(
 
   return {
     async submit(event) {
+      // 二重の止め具。送信の処理を通らずに呼ばれても、偽の識別子は Google へ出さない。
+      if (hasTestClickId(event)) return { kind: "rejected", code: "test_click_id" };
       const r = await call(`${DATA_MANAGER_BASE}/events:ingest`, {
         method: "POST",
         headers: { "content-type": "application/json" },
