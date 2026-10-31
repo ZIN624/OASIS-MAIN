@@ -1,0 +1,31 @@
+name: 広告の週次レポート
+
+on:
+  schedule:
+    # 毎週月曜 9:00（日本時間）= 日曜 24:00 UTC。GitHub の混み具合で数分〜数十分遅れることがある
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Discord に送らず、本文をログに出すだけ"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: レポートを送る
+        env:
+          GA4_PROPERTY_ID: ${{ secrets.GA4_PROPERTY_ID }}
+          GA4_SERVICE_ACCOUNT_JSON: ${{ secrets.GA4_SERVICE_ACCOUNT_JSON }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: node scripts/ads-weekly-report.mjs ${{ inputs.dry_run && '--dry-run' || '' }}
