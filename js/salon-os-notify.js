@@ -6,7 +6,8 @@
   // ・SalonOS は、広告から SalonOS の LINE 入口を通った方のときだけ記録する（それ以外の方は何も残らない）
   // ・返事は読まない（別のドメインへ no-cors で送る）。失敗しても予約の送信と画面の終了は止めない
   // ・keepalive で送るので、すぐ画面を閉じても届く
-  const ENDPOINT = "https://app.salon-os.jp/api/public/line-booking-request";
+  // SalonOS の LINE の入口の API に、kind: "booking_request" で相乗りする
+  const ENDPOINT = "https://app.salon-os.jp/api/public/line-entry";
   const SALON = "oasis-honten";
   let sent = false;
 
@@ -33,7 +34,7 @@
           keepalive: true,
           credentials: "omit",
           headers: { "Content-Type": "text/plain;charset=UTF-8" },
-          body: JSON.stringify({ id_token: idToken, salon: SALON }),
+          body: JSON.stringify({ kind: "booking_request", id_token: idToken, salon: SALON }),
         })
         .catch(function () {
           // 届かなくても予約は止めない
