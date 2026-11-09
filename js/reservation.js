@@ -182,6 +182,8 @@
       liff
         .sendMessages([{ type: "text", text: message }])
         .then(() => {
+          // 先に SalonOS へ知らせる（alert で止まる前に送り出す。失敗しても予約は止めない）
+          window.OasisSalonOs?.notifyBookingRequest?.();
           alert("予約内容を送信しました。");
           setSummaryHintVisible(false);
           const closeForm = () => {
